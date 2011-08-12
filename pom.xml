@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.exoplatform</groupId>
+    <artifactId>exo.parent</artifactId>
+    <version>8.1</version>
+  </parent>
+  <groupId>org.exoplatform.integration</groupId>
+  <artifactId>integ</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>eXo Integration</name>
+  <scm>
+    <connection>scm:svn:https://svn.exoplatform.org/projects/integration/trunk</connection>
+    <developerConnection>scm:svn:https://svn.exoplatform.org/projects/integration/trunk</developerConnection>
+    <url>https://fisheye.exoplatform.org/browse/integration/trunk</url>
+  </scm>
+  <properties>
+    <!-- ********************* -->
+    <!-- Dependencies versions -->
+    <!-- ********************* -->
+    <org.exoplatform.portal.version>3.2.0-PLF-SNAPSHOT</org.exoplatform.portal.version>
+    <org.exoplatform.cs.version>2.2.1-SNAPSHOT</org.exoplatform.cs.version>
+    <org.exoplatform.ks.version>2.2.1-SNAPSHOT</org.exoplatform.ks.version>
+    <org.exoplatform.ecms.version>2.2.0-GA-SNAPSHOT</org.exoplatform.ecms.version>
+    <org.exoplatform.social.version>1.2.1-SNAPSHOT</org.exoplatform.social.version>
+    <!-- ***************************************************** -->
+    <!-- Plugin versions (waiting for an upgrade in exo parent -->
+    <!-- ***************************************************** -->
+    <version.clean.plugin>2.4.1</version.clean.plugin>
+    <version.compiler.plugin>2.3.1</version.compiler.plugin>
+    <version.deploy.plugin>2.5</version.deploy.plugin>
+    <version.install.plugin>2.3.1</version.install.plugin>
+    <version.jar.plugin>2.3.1</version.jar.plugin>
+    <version.resources.plugin>2.4.3</version.resources.plugin>
+    <version.surefire.plugin>2.6</version.surefire.plugin>
+    <version.versions.plugin>1.2</version.versions.plugin>
+    <version.war.plugin>2.1</version.war.plugin>
+  </properties>
+  <dependencyManagement>
+    <dependencies>
+      <!-- ALL VERSIONS OF DEPENDENCIES HAVE TO BE DEFINED HERE -->
+    </dependencies>
+  </dependencyManagement>
+  <modules>
+    <module>integ-gatein</module>
+    <module>integ-ecms</module>
+    <module>integ-cs</module>
+    <module>integ-ks</module>
+    <module>integ-social</module>
+  </modules>
+</project>
