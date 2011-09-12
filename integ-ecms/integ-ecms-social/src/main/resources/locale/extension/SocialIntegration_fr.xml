@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle>
+	<SocialIntegration>
+		<messages>
+			<createdBy>a été créé par</createdBy>
+			<editedBy>a été édité par</editedBy>
+			<system>le système</system>
+		</messages>
+		<publicationStates>
+			<archived>Archivé</archived>
+			<obsolete>Obsolète</obsolete>
+			<unpublished>Non Publié</unpublished>
+			<draft>Brouillon</draft>
+			<pending>Rédigé</pending>
+			<approved>Validé</approved>
+			<inreview>En revue</inreview>
+			<staged>Prêt à publier</staged>
+			<published>Publié</published>
+			<live>Publié</live>
+		</publicationStates>
+	</SocialIntegration>
+</bundle>
