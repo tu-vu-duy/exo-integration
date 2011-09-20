@@ -12,9 +12,9 @@
   <packaging>pom</packaging>
   <name>eXo Integration</name>
   <scm>
-    <connection>scm:svn:https://svn.exoplatform.org/projects/integration/trunk</connection>
-    <developerConnection>scm:svn:https://svn.exoplatform.org/projects/integration/trunk</developerConnection>
-    <url>https://fisheye.exoplatform.org/browse/integration/trunk</url>
+    <connection>scm:svn:http://svn.exoplatform.org/projects/integration/trunk</connection>
+    <developerConnection>scm:svn:http://svn.exoplatform.org/projects/integration/trunk</developerConnection>
+    <url>http://fisheye.exoplatform.org/browse/integration/trunk</url>
   </scm>
   <properties>
     <!-- ********************* -->
