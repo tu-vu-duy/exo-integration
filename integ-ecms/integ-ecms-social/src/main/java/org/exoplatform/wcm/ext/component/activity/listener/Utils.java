@@ -35,6 +35,7 @@ import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.cms.BasePath;
 import org.exoplatform.services.cms.link.LinkManager;
 import org.exoplatform.services.jcr.core.ManageableRepository;
+import org.exoplatform.services.jcr.ext.common.SessionProvider;
 import org.exoplatform.services.jcr.ext.hierarchy.NodeHierarchyCreator;
 import org.exoplatform.services.jcr.impl.core.NodeImpl;
 import org.exoplatform.services.log.ExoLogger;
@@ -187,11 +188,21 @@ public class Utils {
    * @return result of checking
    * @throws RepositoryException
    */
-  private static boolean isSupportedContent(Node node) throws RepositoryException {
+  private static boolean isSupportedContent(Node node) throws Exception {
     if (node.isNodeType(NodetypeConstant.EXO_CSS_FILE) || node.isNodeType(EXO_TEMPLATE)
         || node.isNodeType(NodetypeConstant.EXO_JS_FILE) || node.isNodeType(EXO_ACTION)) {
       return false;
     }    
+    
+    if (getActivityOwnerId() != null && getActivityOwnerId().length() > 0) {
+      NodeHierarchyCreator nodeHierarchyCreator = (NodeHierarchyCreator) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(NodeHierarchyCreator.class);
+      SessionProvider sessionProvider = WCMCoreUtils.getUserSessionProvider();
+      Node userNode = nodeHierarchyCreator.getUserNode(sessionProvider, getActivityOwnerId());
+      if (userNode != null && node.getPath().startsWith(userNode.getPath() + "/Private/")) {
+        return false;
+      }
+    }
+    
     return true;
   }
   
