@@ -196,6 +196,21 @@
 	  playerContentDiv.removeAttribute("style");
 	  playerContentDiv.className = "MediaPlayerDisplay";
 	}
+	
+	function loadImageOnError(obj){
+		var grandParent = obj.parentNode.parentNode;
+		grandParent.style.display = "none";
+		
+		var wcborder = getAncesstorByClass(obj, "WebContentBorder");		
+		if (wcborder.getElementsByTagName("span")[0] == null) {
+			grandParent.parentNode.style.display = "none";
+		}
+	}
+	function getAncesstorByClass(obj, className) {
+	  var parent = obj.parentNode;
+	  while (parent!=null && parent.className==className ) parent = parent.parentNode;
+	  return parent;
+	}
 	//javascript function added by ECMS - END
   </script>
   <!--ECMS stylesheet BEGIN-->
@@ -210,6 +225,7 @@
 	.WebContentBorder { 
 	  border: 1px #F68A2F solid; 
 	  padding: 10px; 
+	  overflow: auto;
 	}
 	  
 	.PDFImageBorder { 
@@ -278,13 +294,14 @@
             }else if (mimeType.startsWith("application/pdf")){
                String pdfThumbnailImage = "/" + portalName + "/" + restContextName + "/thumbnailImage/big/" + repository + "/" + preferenceWS + currentNode.getPath() + "/?reloadnum=" + Math.random();               
                %><a href="$contentActivityUri" title="$activityContentTitle"><image src="$pdfThumbnailImage" class="PDFImageBorder"/></a><%
-            }else if(uicomponent.getImagePath() != "") { %> 
+            }else if((uicomponent.getImagePath() != null && uicomponent.getImagePath().length() > 0) || (summary != null && summary.length() > 0)) { %> 
 				<div class="WebContentBorder">
-					<div class="IllustrationThumbnail"><a href="$ilBinarySrc" title="$activityContentTitle"><image src="$ilBinarySrc" alt="" style="border:1px solid;"/></a></div>
-				  
-					<%if (!"".equals(summary)) {%>
+					<%if (uicomponent.getImagePath() != null && uicomponent.getImagePath().length() > 0) {%>
+						<div class="IllustrationThumbnail"><a href="$ilBinarySrc" title="$activityContentTitle"><image onerror='loadImageOnError(this);' src="$ilBinarySrc" alt="" style="border:1px solid;"/></a></div>
+				  	<%}%>
+					<%if (summary != null && summary.length() > 0) {%>
 						<span>$summary</span>
-						<div class="ReadMoreLink"><a href="$contentActivityUri"><em>...Read More </em></a></div>
+						<div class="ReadMoreLink"><a href="$contentActivityUri"><em><%=_ctx.appRes("SocialIntegration.messages.readmore") %></em></a></div>
 					<%}%>
 				</div>
 	          
