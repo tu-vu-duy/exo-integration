@@ -26,7 +26,7 @@
     <org.exoplatform.ecms.version>2.3.1</org.exoplatform.ecms.version>
     <org.exoplatform.social.version>1.2.3</org.exoplatform.social.version>
     <org.exoplatform.commons.version>1.1.2</org.exoplatform.commons.version>
-    <org.gatein.shindig.version>1.0-r790473-Patch05</org.gatein.shindig.version>
+    <org.gatein.shindig.version>2.0.2-Beta03</org.gatein.shindig.version>
     <!-- ***************************************************** -->
     <!-- Plugin versions (waiting for an upgrade in exo parent -->
     <!-- ***************************************************** -->
