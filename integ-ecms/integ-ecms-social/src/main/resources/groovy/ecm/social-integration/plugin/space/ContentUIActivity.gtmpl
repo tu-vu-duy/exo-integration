@@ -56,7 +56,7 @@
   //ECMS declare variables - BEGIN
   def activityContentTitle = Text.unescapeIllegalJcrChars(activity.title);
   def activityMessage = uicomponent.getMessage();
-  def contentActivityUri = uicomponent.getViewableLink();      
+  def contentActivityUri = uicomponent.event("ViewDocument", uicomponent.getId(), "");      
   def mimeType = uicomponent.getMimeType();
   def binarySrc = uicomponent.getWebdavURL();
   def ilBinarySrc = uicomponent.getImagePath();

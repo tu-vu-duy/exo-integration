@@ -19,29 +19,17 @@ package org.exoplatform.wcm.ext.component.activity;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import javax.jcr.Node;
-import javax.jcr.RepositoryException;
 import javax.portlet.PortletRequest;
 
 import org.exoplatform.commons.utils.ISO8601;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
-import org.exoplatform.ecm.webui.utils.Utils;
-import org.exoplatform.portal.application.PortalRequestContext;
-import org.exoplatform.portal.mop.SiteType;
-import org.exoplatform.portal.mop.user.UserNavigation;
-import org.exoplatform.portal.mop.user.UserNode;
-import org.exoplatform.portal.mop.user.UserPortal;
 import org.exoplatform.portal.webui.util.Util;
-import org.exoplatform.services.cms.BasePath;
-import org.exoplatform.services.cms.drives.DriveData;
-import org.exoplatform.services.cms.drives.ManageDriveService;
-import org.exoplatform.services.jcr.ext.hierarchy.NodeHierarchyCreator;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.wcm.core.NodeLocation;
@@ -51,19 +39,24 @@ import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvide
 import org.exoplatform.social.core.manager.IdentityManager;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
+import org.exoplatform.social.plugin.doc.UIDocViewer;
 import org.exoplatform.social.webui.activity.BaseUIActivity;
-import org.exoplatform.web.url.navigation.NodeURL;
+import org.exoplatform.social.webui.activity.UIActivitiesContainer;
 import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.application.portlet.PortletRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.EventConfig;
+import org.exoplatform.webui.core.UIPopupWindow;
 import org.exoplatform.webui.core.lifecycle.UIFormLifecycle;
+import org.exoplatform.webui.event.Event;
+import org.exoplatform.webui.event.EventListener;
 
 /**
  * Created by The eXo Platform SAS Author : eXoPlatform exo@exoplatform.com Mar
  * 15, 2011
  */
 @ComponentConfig(lifecycle = UIFormLifecycle.class, template = "classpath:groovy/ecm/social-integration/plugin/space/ContentUIActivity.gtmpl", events = {
+    @EventConfig(listeners = ContentUIActivity.ViewDocumentActionListener.class),
     @EventConfig(listeners = BaseUIActivity.ToggleDisplayLikesActionListener.class),
     @EventConfig(listeners = BaseUIActivity.ToggleDisplayCommentFormActionListener.class),
     @EventConfig(listeners = BaseUIActivity.LikeActivityActionListener.class),
@@ -72,10 +65,6 @@ import org.exoplatform.webui.core.lifecycle.UIFormLifecycle;
     @EventConfig(listeners = BaseUIActivity.DeleteActivityActionListener.class, confirm = "UIActivity.msg.Are_You_Sure_To_Delete_This_Activity"),
     @EventConfig(listeners = BaseUIActivity.DeleteCommentActionListener.class, confirm = "UIActivity.msg.Are_You_Sure_To_Delete_This_Comment") })
 public class ContentUIActivity extends BaseUIActivity {
-
-  private static final String PATH_PARAM = "path";
-
-  private static final String SITE_EXPLORER = "siteExplorer";
 
   private static final String NEW_DATE_FORMAT = "hh:mm:ss MMM d, yyyy";
 
@@ -313,61 +302,7 @@ public class ContentUIActivity extends BaseUIActivity {
     this.imagePath = activityParams.get(ContentUIActivity.IMAGE_PATH);
   }
   
-  /**
-   * Generate the viewer link to site explorer by item path
-   * 
-   * @param String the item path
-   * @return String the viewer link
-   * @throws Exception 
-   */
-  public String getViewableLink() throws Exception {
-    String[] params = this.contentLink.split("/");
-    String repository = params[0];
-    String workspace = params[1];
-    String nodePath = this.contentLink.substring((repository + "/" + workspace).length());
-
-    PortalRequestContext pContext = Util.getPortalRequestContext();
-    NodeURL nodeURL = pContext.createURL(NodeURL.TYPE);
-
-    ManageDriveService manageDriveService = WCMCoreUtils.getService(ManageDriveService.class);
-    List<DriveData> driveList = manageDriveService.getDriveByUserRoles(pContext.getRemoteUser(), Utils.getMemberships());
-    DriveData drive = getDrive(driveList, workspace, nodePath);
-    if (drive == null) {
-      UserNode siteExNode = getUserNodeByURI(SITE_EXPLORER);
-      nodeURL.setNode(siteExNode);
-      nodeURL.setQueryParameterValue(PATH_PARAM, this.contentLink);
-      return nodeURL.toString();
-    }
-
-    String driverName = drive.getName();
-    String nodePathInDrive = "/".equals(drive.getHomePath()) ? nodePath : nodePath.substring(drive.getHomePath().length());
-    if (drive.getHomePath().contains("/spaces/")) {
-      String spaceName = driverName.replace(".spaces.", "");
-      UserNode documentNode = getUserNodeByURI(spaceName + "/documents");
-      nodeURL.setNode(documentNode);
-    } else {
-      UserNode siteExNode = getUserNodeByURI(SITE_EXPLORER);
-      nodeURL.setNode(siteExNode);
-    }
-
-    nodeURL.setQueryParameterValue(PATH_PARAM, repository + "/" + driverName + nodePathInDrive);
-    return nodeURL.toString();
-  }
   
-  private UserNode getUserNodeByURI(String uri) {
-    UserPortal userPortal = Util.getPortalRequestContext().getUserPortalConfig().getUserPortal();
-    List<UserNavigation> allNavs = userPortal.getNavigations();
-
-    for (UserNavigation nav : allNavs) {
-      if (nav.getKey().getType().equals(SiteType.GROUP)) {
-        UserNode userNode = userPortal.resolvePath(nav, null, uri);
-        if (userNode != null) {
-          return userNode;
-        }
-      }
-    }
-    return null;
-  }
   
   /**
    * Gets the webdav url.
@@ -403,43 +338,24 @@ public class ContentUIActivity extends BaseUIActivity {
     return friendlyService.getFriendlyUri(link);
   }
   
-  private DriveData getDrive(List<DriveData> lstDrive, String workspace, String nodePath) throws RepositoryException{
-    
-    DriveData driveData = null;
-    String[] elements = nodePath.split("/");
-    String driveMapper = "";
-    boolean found = false;
-    NodeHierarchyCreator nodeHierarchyCreator = (NodeHierarchyCreator) ExoContainerContext.getCurrentContainer()
-                                                                                          .getComponentInstanceOfType(NodeHierarchyCreator.class);
-    String groupPath = nodeHierarchyCreator.getJcrPath(BasePath.CMS_GROUPS_PATH);
-    String spacesFolder = groupPath + "/spaces";
-    for (int i = 0; i < elements.length; i++) {
-      /**
-       * append elements in node path one by one to compare with driver
-       * example: node path = /a/b/c/d
-       * i == 0 => driveMapper = "/" (root node)
-       * i == 1 => driveMapper = "/a"
-       * i == 2 => driveMapper = "/a/b" 
-       * ...
-       */      
-      if (i == 1) {
-        driveMapper += elements[i];
-      } else {
-        driveMapper += "/" + elements[i];
-      }      
-      for (DriveData drive : lstDrive) {        
-        if (workspace.equals(drive.getWorkspace()) && driveMapper.equals(drive.getHomePath())) {
-          driveData = drive;
-          if (!nodePath.startsWith(spacesFolder)) {
-            found = true;
-          }
-          break;          
-        }
-      }
-      if (found) {
-        break;
-      }    
-    } 
-    return driveData;
+  public static class ViewDocumentActionListener extends EventListener<ContentUIActivity> {
+    @Override
+    public void execute(Event<ContentUIActivity> event) throws Exception {
+      final ContentUIActivity docActivity = event.getSource();
+      final UIActivitiesContainer activitiesContainer = docActivity.getParent();
+      final UIPopupWindow popupWindow = activitiesContainer.getPopupWindow();
+
+      UIDocViewer docViewer = popupWindow.createUIComponent(UIDocViewer.class, null, "DocViewer");
+      final Node docNode = docActivity.getContentNode();
+      docViewer.setOriginalNode(docNode);
+      docViewer.setNode(docNode);
+
+      popupWindow.setUIComponent(docViewer);
+      popupWindow.setWindowSize(800, 600);
+      popupWindow.setShow(true);
+      popupWindow.setResizable(true);
+
+      event.getRequestContext().addUIComponentToUpdateByAjax(activitiesContainer);
+    }
   }
 }
