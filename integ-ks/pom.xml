@@ -10,6 +10,6 @@
   <packaging>pom</packaging>
   <name>eXo Integration - Knowledge</name>
   <modules>
-    <!-- MODULES -->
+    <module>integ-ks-social</module>
   </modules>
 </project>
