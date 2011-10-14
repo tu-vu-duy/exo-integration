@@ -189,11 +189,6 @@ public class Utils {
    * @throws RepositoryException
    */
   private static boolean isSupportedContent(Node node) throws Exception {
-    if (node.isNodeType(NodetypeConstant.EXO_CSS_FILE) || node.isNodeType(EXO_TEMPLATE)
-        || node.isNodeType(NodetypeConstant.EXO_JS_FILE) || node.isNodeType(EXO_ACTION)) {
-      return false;
-    }    
-    
     if (getActivityOwnerId() != null && getActivityOwnerId().length() > 0) {
       NodeHierarchyCreator nodeHierarchyCreator = (NodeHierarchyCreator) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(NodeHierarchyCreator.class);
       SessionProvider sessionProvider = WCMCoreUtils.getUserSessionProvider();
