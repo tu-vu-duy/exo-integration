@@ -10,6 +10,6 @@
   <packaging>pom</packaging>
   <name>eXo Integration - Collaboration</name>
   <modules>
-    <!-- MODULES -->
+    <module>integ-cs-social</module>
   </modules>
 </project>
