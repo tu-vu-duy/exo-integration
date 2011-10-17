@@ -22,6 +22,7 @@ import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.manager.IdentityManager;
+import org.exoplatform.social.core.space.SpaceException;
 import org.exoplatform.social.core.storage.ActivityStorageException;
 import org.exoplatform.social.webui.activity.BaseUIActivity;
 import org.exoplatform.web.application.ApplicationMessage;
@@ -108,8 +109,12 @@ public class AnswerUIActivity extends BaseKSActivity {
     return title;
   }
 
-  
-  
+ @Override
+  public boolean isCommentDeletable(String activityUserId) throws SpaceException {
+    // do not allow users to remove comments in the question activity.
+    return !isQuestionActivity() && super.isCommentDeletable(activityUserId);
+  }
+
   public boolean isQuestionActivity() {
     String value = getActivityParamValue(AnswersSpaceActivityPublisher.ACTIVITY_TYPE_KEY);
     if (value.indexOf(AnswersSpaceActivityPublisher.QUESTION) >= 0) {
