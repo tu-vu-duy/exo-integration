@@ -116,11 +116,11 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
     if (type.toString().indexOf("Post") > 0) {
       templateParams.put(POST_ID_KEY, post.getId());
       templateParams.put(POST_LINK_KEY, post.getLink());
-      templateParams.put(POST_NAME_KEY, post.getName());
+      templateParams.put(POST_NAME_KEY, ForumTransformHTML.getTitleInHTMLCode(post.getName()));
       templateParams.put(POST_OWNER_KEY, post.getOwner());
     } else {
       templateParams.put(TOPIC_LINK_KEY, topic.getLink());
-      templateParams.put(TOPIC_NAME_KEY, topic.getTopicName());
+      templateParams.put(TOPIC_NAME_KEY, ForumTransformHTML.getTitleInHTMLCode(topic.getTopicName()));
       templateParams.put(TOPIC_OWNER_KEY, topic.getOwner());
     }
     return templateParams;

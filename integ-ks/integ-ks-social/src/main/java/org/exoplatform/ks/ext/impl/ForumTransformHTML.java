@@ -23,6 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.exoplatform.ks.common.CommonUtils;
 
 /**
  * copied
@@ -32,39 +33,41 @@ import org.apache.commons.lang.StringUtils;
 public class ForumTransformHTML {
 
   public static String cleanHtmlCode(String sms, List<String> bbcs) {
-    if (sms == null || sms.trim().length() <= 0)
-      return "";
-    sms = StringUtils.replace(sms, "\n", " ");
+    if (CommonUtils.isEmpty(sms))
+      return CommonUtils.EMPTY_STR;
+    sms = StringUtils.replace(sms, "\n", CommonUtils.SPACE);
     // clean bbcode
-    List<String> bbcList = new ArrayList<String>();
-    bbcList.addAll(bbcs);
-    for (String bbc : bbcs) {
-      bbcList.add(bbc.toLowerCase());
-    }
-    int lastIndex = 0;
-    int tagIndex = 0;
-    String start, end;
-    for (String bbc : bbcList) {
-      start = "[" + bbc;
-      end = "[/" + bbc + "]";
-      lastIndex = 0;
-      tagIndex = 0;
-      while ((tagIndex = sms.indexOf(start, lastIndex)) != -1) {
-        lastIndex = tagIndex + 1;
-        try {
-          int clsIndex = sms.indexOf(end, tagIndex);
-          String content = sms.substring(tagIndex, clsIndex);
-          String content_ = content.substring(content.indexOf("]") + 1);
-          sms = StringUtils.replace(sms, content + end, content_);
-        } catch (Exception e) {
-          continue;
+    if (bbcs != null && bbcs.size() > 0) {
+      List<String> bbcList = new ArrayList<String>();
+      bbcList.addAll(bbcs);
+      for (String bbc : bbcs) {
+        bbcList.add(bbc.toLowerCase());
+      }
+      int lastIndex = 0;
+      int tagIndex = 0;
+      String start, end;
+      for (String bbc : bbcList) {
+        start = "[" + bbc;
+        end = "[/" + bbc + "]";
+        lastIndex = 0;
+        tagIndex = 0;
+        while ((tagIndex = sms.indexOf(start, lastIndex)) != -1) {
+          lastIndex = tagIndex + 1;
+          try {
+            int clsIndex = sms.indexOf(end, tagIndex);
+            String content = sms.substring(tagIndex, clsIndex);
+            String content_ = content.substring(content.indexOf("]") + 1);
+            sms = StringUtils.replace(sms, content + end, content_);
+          } catch (Exception e) {
+            continue;
+          }
         }
       }
+      sms = StringUtils.replace(sms, "[U]", "");
+      sms = StringUtils.replace(sms, "[/U]", "");
+      sms = StringUtils.replace(sms, "[u]", "");
+      sms = StringUtils.replace(sms, "[/u]", "");
     }
-    sms = StringUtils.replace(sms, "[U]", "");
-    sms = StringUtils.replace(sms, "[/U]", "");
-    sms = StringUtils.replace(sms, "[u]", "");
-    sms = StringUtils.replace(sms, "[/u]", "");
     // Clean html code
     String scriptregex = "<(script|style)[^>]*>[^<]*</(script|style)>";
     Pattern p1 = Pattern.compile(scriptregex, Pattern.CASE_INSENSITIVE);
@@ -79,16 +82,21 @@ public class ForumTransformHTML {
     return sms;
   }
 
-  public static String getTitleInHTMLCode(String s, List<String> bbcs) {
-    if(s == null || s.trim().length() == 0) return "";
+  public static String getTitleInHTMLCode(String s) throws Exception {
+    return getTitleInHTMLCode(s, new ArrayList<String>());
+  }
+
+  public static String getTitleInHTMLCode(String s, List<String> bbcs) throws Exception {
+    if(CommonUtils.isEmpty(s)) return CommonUtils.EMPTY_STR;
     if(s.length() > 500) s = s.substring(0, 500);
-    s = s.replaceAll("&nbsp;&nbsp;", "&nbsp;").replaceAll("&nbsp; ", "&nbsp;")
-                     .replaceAll(" &nbsp;", "&nbsp;").replaceAll("<br/>", " ");
-    s = StringUtils.replace(s, "  ", " ");
+    s = s.replaceAll("&nbsp;", CommonUtils.SPACE).replaceAll("<br/>", CommonUtils.SPACE).replaceAll("( \\s*)", CommonUtils.SPACE);
     s = cleanHtmlCode(s, bbcs);
     s = removeCharterStrange(s);
-    return s;
+    s = CommonUtils.decodeSpecialCharToHTMLnumber(s);
+    return s.trim();
   }
+  
+  
 
   public static String removeCharterStrange(String s) {
     if (s == null || s.length() <= 0)
