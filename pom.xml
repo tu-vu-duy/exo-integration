@@ -31,7 +31,10 @@
     <org.exoplatform.jcr.version>1.14.1-GA</org.exoplatform.jcr.version>
     <org.slf4j.version>1.5.8</org.slf4j.version>
     <org.exoplatform.core.version>2.4.1-GA</org.exoplatform.core.version>
-    
+    <org.shindig.version>2.0.2-Beta03</org.shindig.version>
+    <org.json.version>20070829</org.json.version>
+    <javax.jcr.version>1.0</javax.jcr.version>
+
     <!-- ***************************************************** -->
     <!-- Plugin versions (waiting for an upgrade in exo parent -->
     <!-- ***************************************************** -->
