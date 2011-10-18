@@ -43,6 +43,10 @@ public class WikiUIActivity extends BaseKSActivity {
     return getActivityParamValue(WikiSpaceActivityPublisher.URL_KEY);
   }
   
+  String getViewChangeURL(){
+    return getActivityParamValue(WikiSpaceActivityPublisher.VIEW_CHANGE_URL_KEY);
+  }
+  
   String getPageExcerpt(){
     return getActivityParamValue(WikiSpaceActivityPublisher.PAGE_EXCERPT);
   }

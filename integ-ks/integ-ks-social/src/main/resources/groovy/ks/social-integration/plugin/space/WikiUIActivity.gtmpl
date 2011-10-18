@@ -183,6 +183,14 @@
         <%} else {%>
           <span class="DateTime">$activityPostedTime *</span>
         <% } %>
+      <% String viewChangeURL = uicomponent.getViewChangeURL(); 
+         String viewChangeLabel = _ctx.appRes("WikiUIActivity.label.view-change");
+         if (!StringUtils.EMPTY.equals(viewChangeURL)) {
+      %>
+        <a href="$viewChangeURL">
+          $viewChangeLabel
+        </a> |
+      <% } %>
       <% def toggleDisplayCommentAction = uicomponent.event('ToggleDisplayCommentForm', null, false);
          def commentLink = "";
       %>

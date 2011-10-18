@@ -34,17 +34,23 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
 
   public static final String UPDATE_PAGE_TYPE  = "update_page";
 
-  public static final String PAGE_ID_KEY       = "page_id".intern();
+  public static final String PAGE_ID_KEY       = "page_id";
 
-  public static final String PAGE_TYPE_KEY     = "page_type".intern();
+  public static final String PAGE_TYPE_KEY     = "page_type";
 
-  public static final String PAGE_OWNER_KEY    = "page_owner".intern();
+  public static final String PAGE_OWNER_KEY    = "page_owner";
 
-  public static final String PAGE_TITLE_KEY    = "page_name".intern();
+  public static final String PAGE_TITLE_KEY    = "page_name";
 
-  public static final String URL_KEY           = "page_url".intern();
+  public static final String URL_KEY           = "page_url";
   
-  public static final String PAGE_EXCERPT      = "page_exceprt".intern();
+  public static final String PAGE_EXCERPT      = "page_exceprt";
+  
+  public static final String VIEW_CHANGE_URL_KEY = "view_change_url";
+  
+  public static final String VIEW_CHANGE_ANCHOR  = "#CompareRevision/changes";  
+  
+  public static final String WIKI_PAGE_NAME      = "wiki";
 
   private static final int   EXCERPT_LENGTH    = 140;
 
@@ -89,7 +95,7 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
 
     Identity spaceIdentity = identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
     Identity userIdentity = identityM.getOrCreateIdentity(OrganizationIdentityProvider.NAME, page.getAuthor(), false);
-
+    
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setUserId(userIdentity.getId());
     activity.setTitle("title");
@@ -100,13 +106,15 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
     templateParams.put(ACTIVITY_TYPE_KEY, addType);
     templateParams.put(PAGE_OWNER_KEY, wikiOwner);
     templateParams.put(PAGE_TYPE_KEY, wikiType);
-    templateParams.put(PAGE_TITLE_KEY, page.getTitle());
-    templateParams.put(URL_KEY, page.getURL());
+    templateParams.put(PAGE_TITLE_KEY, page.getTitle());    
+    String pageURL = (page.getURL() == null) ? space.getUrl() + "/" + WIKI_PAGE_NAME : page.getURL();
+    templateParams.put(URL_KEY, pageURL);
     
     String excerpt = StringUtils.EMPTY;
     if (ADD_PAGE_TYPE.equals(addType)) {
       excerpt = renderingService.render(page.getContent().getText(), page.getSyntax(), Syntax.PLAIN_1_0.toIdString(), false);
     } else {
+      templateParams.put(VIEW_CHANGE_URL_KEY, page.getURL() + VIEW_CHANGE_ANCHOR);
       excerpt = page.getComment();
     }
     excerpt = (excerpt.length() > EXCERPT_LENGTH) ? excerpt.substring(0, EXCERPT_LENGTH) + "..." : excerpt;
