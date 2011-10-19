@@ -171,7 +171,7 @@
         <%=uicomponent.getPageExcerpt()%>
       </div>
     <% } %>
-      <div class="DefaultActivityIcon">
+      <div class="DefaultActivityIcon WikiActivityIcon">
         <% if (uicomponent.isUserActivity() && uicomponent.isSpaceStreamOwner() && !uicomponent.isUISpaceActivitiesDisplay()) {%>
         	<%
           	Space spaceSource = Utils.getSpaceService().getSpaceByPrettyName(streamOwner);

@@ -165,7 +165,7 @@
       </div>   
      <!-- update condition following by question or answer-->
      <%
-     def isQuestion = false ;
+     def isQuestion = uicomponent.isQuestionActivity();
      def icon = "AnswerActivityIcon";
      if(isQuestion) {icon="AskedActivityIcon"};
      %>
