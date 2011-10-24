@@ -183,14 +183,6 @@
         <%} else {%>
           <span class="DateTime">$activityPostedTime *</span>
         <% } %>
-      <% String viewChangeURL = uicomponent.getViewChangeURL(); 
-         String viewChangeLabel = _ctx.appRes("WikiUIActivity.label.view-change");
-         if (!StringUtils.EMPTY.equals(viewChangeURL)) {
-      %>
-        <a href="$viewChangeURL">
-          $viewChangeLabel
-        </a> |
-      <% } %>
       <% def toggleDisplayCommentAction = uicomponent.event('ToggleDisplayCommentForm', null, false);
          def commentLink = "";
       %>
@@ -206,8 +198,16 @@
         <a onclick="$likeActivityAction" id="LikeLink${activity.id}" href="#like">
           $labelLike
         </a>
-      <% }%>
-     <% }%>
+      <% }%>     
+     <% }%>     
+      <% String viewChangeURL = uicomponent.getViewChangeURL(); 
+         String viewChangeLabel = _ctx.appRes("WikiUIActivity.label.view-change");
+         if (!StringUtils.EMPTY.equals(viewChangeURL)) {
+      %>
+        |<a href="$viewChangeURL">
+          $viewChangeLabel
+        </a>
+      <% } %>
       </div>
     <% if (identityLikesNum > 0 || uicomponent.isLiked()) {%>
       <div class="ListPeopleLikeBG $listPeopleBGClass">
