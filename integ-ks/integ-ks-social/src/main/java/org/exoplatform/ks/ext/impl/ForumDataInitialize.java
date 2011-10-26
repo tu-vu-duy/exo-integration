@@ -92,7 +92,7 @@ public class ForumDataInitialize extends SpaceListenerPlugin {
         }
         category.setCategoryOrder(100l);
         category.setUserPrivate(new String[]{""});
-        category.setDescription("The category sotorage all forums of spaces.");
+        category.setDescription("All forums from spaces");
         fServie.saveCategory(category, true);
       }
 
