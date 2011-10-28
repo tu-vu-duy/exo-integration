@@ -18,9 +18,9 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.exoplatform.social</groupId>
-			<artifactId>exo.social.extras.document-composer-plugin</artifactId>
-			<version>${org.exoplatform.social.version}</version>
+			<groupId>org.exoplatform.integration</groupId>
+			<artifactId>integ-social-ecms</artifactId>
+			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
