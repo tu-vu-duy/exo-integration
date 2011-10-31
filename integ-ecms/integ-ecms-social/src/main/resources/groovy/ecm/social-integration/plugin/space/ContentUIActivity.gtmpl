@@ -271,17 +271,11 @@
 				<a title="$authorName" href="$authorURL"> $authorName</a>
 			<% } else { %>
 				<%=_ctx.appRes("SocialIntegration.messages.system") %>
-			<% } %>			
-        </div>
-        <div id="DocDetail">
-			<a>Date Created:</a> $dateCreated &nbsp; <%
-			   if (lastModified != null && lastModified.length() > 0) { %>
-					<a>Last Modified:</a> $lastModified &nbsp; 
-			<% }
-				
+			<% } 					
+			  
 			   if (state != null && state.length() > 0) { %>
-			   		<a>State:</a> <%=_ctx.appRes("SocialIntegration.publicationStates." + state)%>
-			<% } %>		    
+			   	 &nbsp;&nbsp; state: <%=_ctx.appRes("SocialIntegration.publicationStates." + state)%>
+			<% } %>		
         </div>
 		<div id="MediaContent${activity.id}" class="MediaContent">
 		<%if (mimeType != null && mimeType.length() > 0){
@@ -310,7 +304,9 @@
         </div>
 		<!--ECMS update content of activity END-->
       </p>
-      <div class="DefaultActivityIcon">
+      <!--ECMS change icon-->
+      <div class="DocActivityIcon">
+      <!--ECMS change icon END-->
         <% if (uicomponent.isUserActivity() && uicomponent.isSpaceStreamOwner() && !uicomponent.isUISpaceActivitiesDisplay()) {%>
         	<%
           	Space spaceSource = Utils.getSpaceService().getSpaceByPrettyName(streamOwner);
@@ -318,7 +314,7 @@
     				def spaceName = spaceSource.displayName;
     				activityPostedTimeInSpace = uicomponent.getPostedTimeInSpaceString(_ctx, activity.postedTime);
           %>
-          <span class="DateTime">$activityPostedTimeInSpace <a class="Text" title="$spaceName" href="$spaceSourceURI">$spaceName</a> *</span>
+          <span class="DateTime">$activityPostedTimeInSpace <b><a class="Text" title="$spaceName" href="$spaceSourceURI">$spaceName</a></b> *</span>
         <%} else {%>
           <span class="DateTime">$activityPostedTime *</span>
         <% } %>
