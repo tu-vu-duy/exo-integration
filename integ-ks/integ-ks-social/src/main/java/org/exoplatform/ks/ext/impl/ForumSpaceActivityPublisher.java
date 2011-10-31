@@ -56,6 +56,8 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
 
   public static final String ACTIVITY_TYPE_KEY = "ActivityType";
 
+  public static final String POST_TYPE         = "Post";
+
   public static final String POST_ID_KEY       = "PostId";
 
   public static final String POST_OWNER_KEY    = "PostOwner";
@@ -99,21 +101,22 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
     Identity spaceIdentity = identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     String body = ForumTransformHTML.getTitleInHTMLCode(post.getMessage(), new ArrayList<String>((new ExtendedBBCodeProvider()).getSupportedBBCodes()));
+    String title = (type.name().indexOf(POST_TYPE) > 0) ? post.getName() : topic.getTopicName();
     activity.setUserId(userIdentity.getId());
-    activity.setTitle(post.getOwner());
+    activity.setTitle(ForumTransformHTML.getTitleInHTMLCode(title));
     activity.setBody(body);
     activity.setType(FORUM_APP_ID);
     Map<String, String> templateParams = new HashMap<String, String>();
     templateParams.put(FORUM_ID_KEY, forumId);
     templateParams.put(CATE_ID_KEY, categoryId);
     templateParams.put(TOPIC_ID_KEY, topic.getId());
-    templateParams.put(ACTIVITY_TYPE_KEY, type.toString());
+    templateParams.put(ACTIVITY_TYPE_KEY, type.name());
     activity.setTemplateParams(createActivity(templateParams, topic, post, type));
     activityM.saveActivityNoReturn(spaceIdentity, activity);
   }
 
   private Map<String, String> createActivity(Map<String, String> templateParams, Topic topic, Post post, ACTIVITYTYPE type) throws Exception {
-    if (type.toString().indexOf("Post") > 0) {
+    if (type.name().indexOf(POST_TYPE) > 0) {
       templateParams.put(POST_ID_KEY, post.getId());
       templateParams.put(POST_LINK_KEY, post.getLink());
       templateParams.put(POST_NAME_KEY, ForumTransformHTML.getTitleInHTMLCode(post.getName()));
@@ -129,7 +132,9 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
   private Post convertTopicToPost(Topic topic) {
     Post post = new Post();
     post.setOwner(topic.getOwner());
+    post.setName(topic.getTopicName());
     post.setMessage(topic.getDescription());
+    post.setLink(topic.getLink());
     return post;
   }
   
