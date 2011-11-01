@@ -88,21 +88,19 @@ public class AnswersSpaceActivityPublisher extends AnswerEventListener {
       }
       
       //TODO resource bundle needed 
-      String msg = "@"+answer.getResponseBy();
-      String body = answer.getResponses();
-      String spaceId = catId.split(Utils.CATE_SPACE_ID_PREFIX)[1];
+      String prettyname = catId.split(Utils.CATE_SPACE_ID_PREFIX)[1];
       ExoContainer exoContainer = ExoContainerContext.getCurrentContainer();
       IdentityManager identityM = (IdentityManager) exoContainer.getComponentInstanceOfType(IdentityManager.class);
       ActivityManager activityM = (ActivityManager) exoContainer.getComponentInstanceOfType(ActivityManager.class);
       SpaceService spaceService  = (SpaceService)exoContainer.getComponentInstanceOfType(SpaceService.class);
-      Space space = spaceService.getSpaceById(spaceId);
+      Space space = spaceService.getSpaceByPrettyName(prettyname);
       
       Identity spaceIdentity = identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
       Identity userIdentity = identityM.getOrCreateIdentity(OrganizationIdentityProvider.NAME, answer.getResponseBy(), false);
       ExoSocialActivity activity = new ExoSocialActivityImpl();
       activity.setUserId(userIdentity.getId());
-      activity.setTitle(msg);
-      activity.setBody(body);
+      activity.setTitle("@"+answer.getResponseBy());
+      activity.setBody(answer.getResponses());
       activity.setType(SPACE_APP_ID);
       Map<String, String> params = new HashMap<String, String>();
       params.put(QUESTION_ID_KEY, questionId);
@@ -113,7 +111,6 @@ public class AnswersSpaceActivityPublisher extends AnswerEventListener {
       params.put(LINK_KEY, q.getLink());
       params.put(LANGUAGE_KEY, q.getLanguage());
       activity.setTemplateParams(params);
-      
       activityM.saveActivityNoReturn(spaceIdentity, activity);
 
     } catch (ClassNotFoundException e) {

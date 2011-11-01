@@ -72,25 +72,23 @@ public class AnswerDataInitialize extends SpaceListenerPlugin {
     Space space = event.getSpace();
     FAQService fServie = (FAQService) PortalContainer.getInstance().getComponentInstanceOfType(FAQService.class);
     try {
-     Category parent = fServie.getCategoryById(Utils.CATEGORY_HOME) ;
-     if (parent != null ) {
-     Category cat = new Category();
-     cat.setId(Utils.CATE_SPACE_ID_PREFIX + space.getId());
-     cat.setCreatedDate(new Date()) ;
-     cat.setName(space.getPrettyName()) ;
-     cat.setUserPrivate(new String[]{space.getGroupId()});
-     cat.setDescription(space.getDescription()) ;    
-     //cat.setModerateQuestions(moderatequestion) ;
-     //cat.setModerateAnswers(moderateAnswer);
-     //cat.setViewAuthorInfor(true);
-     cat.setIndex(1);
-     //TODO hard text manager should check with portal team
-     cat.setModerators(new String[]{SpaceServiceImpl.MANAGER +":"+ space.getGroupId()}) ;
-     if(fServie.getCategoryById(cat.getId()) == null) fServie.saveCategory(parent.getId(), cat, true);
-     } else {
-       log.error("\n\n Root category null please check to create one !") ;
-     }
-    }catch (Exception e) {
+      Category parent = fServie.getCategoryById(Utils.CATEGORY_HOME);
+      if (parent != null) {
+        Category cat = new Category();
+        cat.setId(Utils.CATE_SPACE_ID_PREFIX + space.getPrettyName());
+        cat.setName(space.getDisplayName());
+        cat.setUserPrivate(new String[] { space.getGroupId() });
+        cat.setDescription(space.getDescription());
+        cat.setIndex(1);
+        // TODO hard text manager should check with portal team
+        cat.setModerators(new String[] { SpaceServiceImpl.MANAGER + ":" + space.getGroupId() });
+        if (fServie.getCategoryById(cat.getId()) == null) {
+          fServie.saveCategory(Utils.CATEGORY_HOME, cat, true);
+        }
+      } else {
+        log.error("\n\n Root category null please check to create one !");
+      }
+    } catch (Exception e) {
       log.error("\n\n Initialize category false " + e.getMessage());
     }
   }
