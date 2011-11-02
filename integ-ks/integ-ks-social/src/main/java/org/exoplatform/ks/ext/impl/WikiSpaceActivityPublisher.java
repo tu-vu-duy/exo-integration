@@ -56,10 +56,8 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
 
   private static Log         LOG               = ExoLogger.getExoLogger(WikiSpaceActivityPublisher.class);
 
-  private InitParams         params;
 
   public WikiSpaceActivityPublisher(InitParams params) {
-    this.params = params;
   }
 
   private void saveActivity(String wikiType, String wikiOwner, String pageId, Page page, String addType) throws Exception {
@@ -120,7 +118,7 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
     excerpt = (excerpt.length() > EXCERPT_LENGTH) ? excerpt.substring(0, EXCERPT_LENGTH) + "..." : excerpt;
     templateParams.put(PAGE_EXCERPT, excerpt);
     activity.setTemplateParams(templateParams);
-    activityM.saveActivity(spaceIdentity, activity);
+    activityM.saveActivityNoReturn(spaceIdentity, activity);
   }
 
   @Override

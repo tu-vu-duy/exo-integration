@@ -16,8 +16,6 @@
  */
 package org.exoplatform.ks.ext.impl;
 
-import java.util.Date;
-
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.faq.service.Category;

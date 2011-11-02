@@ -50,6 +50,7 @@ public class ForumUIActivity extends BaseKSActivity {
     return StringUtils.replace(tagLink, "{1}", nameLink);
   }
   
+  @SuppressWarnings("unused")
   private String getActivityContentTitle(WebuiBindingContext _ctx, String herf) throws Exception {
     String title = "", linkTag = "";
     try {

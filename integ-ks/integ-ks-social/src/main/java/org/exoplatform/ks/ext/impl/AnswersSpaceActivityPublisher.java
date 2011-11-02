@@ -183,44 +183,50 @@ public class AnswersSpaceActivityPublisher extends AnswerEventListener {
       if (catId == null || catId.indexOf(Utils.CATE_SPACE_ID_PREFIX) < 0) {
         return;
       }
-        
+
       if (!question.isActivated() || !question.isApproved()) {
         // filter the question if it is not approved or not activated.
         return;
       }
-      //TODO resource bundle needed 
-      String msg = "@"+question.getAuthor();
+      // TODO resource bundle needed
+      String msg = "@" + question.getAuthor();
       String body = question.getDetail();
-      String spaceId = catId.split(Utils.CATE_SPACE_ID_PREFIX)[1];
-      if(spaceId.indexOf("/") > 0) spaceId = spaceId.substring(0, spaceId.indexOf("/"));
+      String prettyname = catId.split(Utils.CATE_SPACE_ID_PREFIX)[1];
+      if (prettyname.indexOf("/") > 0) {
+        prettyname = prettyname.substring(0, prettyname.indexOf("/"));
+      }
       ExoContainer exoContainer = ExoContainerContext.getCurrentContainer();
-      IdentityManager identityM = (IdentityManager) exoContainer.getComponentInstanceOfType(IdentityManager.class);
-      ActivityManager activityM = (ActivityManager) exoContainer.getComponentInstanceOfType(ActivityManager.class);
-      SpaceService spaceService  = (SpaceService)exoContainer.getComponentInstanceOfType(SpaceService.class);
-      Space space = spaceService.getSpaceById(spaceId);
-      Identity spaceIdentity = identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME,space.getPrettyName(), false);
-      Identity userIdentity = identityM.getOrCreateIdentity(OrganizationIdentityProvider.NAME, question.getAuthor(), false);
-      ExoSocialActivity activity = new ExoSocialActivityImpl();
-      activity.setUserId(userIdentity.getId());
-      activity.setTitle(msg);
-      activity.setBody(body);
-      activity.setType(SPACE_APP_ID);
-      Map<String, String> params = new HashMap<String, String>();
-      params.put(QUESTION_ID_KEY, question.getId());
-      params.put(ACTIVITY_TYPE_KEY, isNew ? QUESTION_ADD : QUESTION_UPDATE);
-      params.put(QUESTION_NAME_KEY, question.getQuestion());
-      params.put(LINK_KEY, question.getLink());
-      params.put(LANGUAGE_KEY, question.getLanguage());
-      activity.setTemplateParams(params);
-
-      activityM.saveActivityNoReturn(spaceIdentity, activity);
+      SpaceService spaceService = (SpaceService) exoContainer.getComponentInstanceOfType(SpaceService.class);
+      Space space = spaceService.getSpaceByPrettyName(prettyname);
+      if (space != null) {
+        IdentityManager identityM = (IdentityManager) exoContainer.getComponentInstanceOfType(IdentityManager.class);
+        ActivityManager activityM = (ActivityManager) exoContainer.getComponentInstanceOfType(ActivityManager.class);
+        Identity spaceIdentity = identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, prettyname, false);
+        Identity userIdentity = identityM.getOrCreateIdentity(OrganizationIdentityProvider.NAME, question.getAuthor(), false);
+        ExoSocialActivity activity = new ExoSocialActivityImpl();
+        activity.setUserId(userIdentity.getId());
+        activity.setTitle(msg);
+        activity.setBody(body);
+        activity.setType(SPACE_APP_ID);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(QUESTION_ID_KEY, question.getId());
+        params.put(ACTIVITY_TYPE_KEY, isNew ? QUESTION_ADD : QUESTION_UPDATE);
+        params.put(QUESTION_NAME_KEY, question.getQuestion());
+        params.put(LINK_KEY, question.getLink());
+        params.put(LANGUAGE_KEY, question.getLanguage());
+        activity.setTemplateParams(params);
+        activityM.saveActivityNoReturn(spaceIdentity, activity);
+      } else {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Can not record Activity for space when add new question, because the space no longer exist.");
+        }
+      }
     } catch (ClassNotFoundException e) {
       if (LOG.isDebugEnabled())
         LOG.debug("Please check the integrated project does the social deploy? ", e);
     } catch (Exception e) {
       LOG.error("Can not record Activity for space when add new questin ", e);
     }
-
   }
 
   @Override

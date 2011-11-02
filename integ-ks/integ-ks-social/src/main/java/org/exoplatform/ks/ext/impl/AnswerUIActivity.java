@@ -154,7 +154,7 @@ public class AnswerUIActivity extends BaseKSActivity {
   public static class PostCommentActionListener extends BaseUIActivity.PostCommentActionListener {
 
     @Override
-    public void execute(Event event) throws Exception {
+    public void execute(Event<BaseUIActivity> event) throws Exception {
       AnswerUIActivity uiActivity = (AnswerUIActivity) event.getSource();
       if (!uiActivity.isQuestionActivity()) {
         super.execute(event);

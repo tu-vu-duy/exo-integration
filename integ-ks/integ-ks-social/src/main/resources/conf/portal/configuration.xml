@@ -72,6 +72,7 @@
                 <name>portletsPrefsRequired</name>
                 <value>ForumPortlet</value>
                 <value>AnswersPortlet</value>
+                <value>FAQPortlet</value>
                 <value>WikiPortlet</value>
               </values-param>
             </init-params>
