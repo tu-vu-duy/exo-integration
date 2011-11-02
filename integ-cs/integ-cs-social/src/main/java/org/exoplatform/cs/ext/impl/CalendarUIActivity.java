@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.jcr.PathNotFoundException;
+
 import org.exoplatform.calendar.service.CalendarEvent;
 import org.exoplatform.calendar.service.CalendarService;
 import org.exoplatform.calendar.service.Utils;
@@ -27,14 +29,12 @@ import org.exoplatform.webui.event.EventListener;
 
 @ComponentConfig(lifecycle = UIFormLifecycle.class, template = "classpath:groovy/cs/social-integration/plugin/space/CalendarUIActivity.gtmpl", events = { @EventConfig(listeners = BaseUIActivity.ToggleDisplayLikesActionListener.class), @EventConfig(listeners = BaseUIActivity.ToggleDisplayCommentFormActionListener.class), @EventConfig(listeners = BaseUIActivity.LikeActivityActionListener.class),
     @EventConfig(listeners = BaseUIActivity.SetCommentListStatusActionListener.class), @EventConfig(listeners = BaseUIActivity.PostCommentActionListener.class), @EventConfig(listeners = BaseUIActivity.DeleteActivityActionListener.class, confirm = "UIActivity.msg.Are_You_Sure_To_Delete_This_Activity"),
-    @EventConfig(listeners = BaseUIActivity.DeleteCommentActionListener.class, confirm = "UIActivity.msg.Are_You_Sure_To_Delete_This_Comment"), @EventConfig(listeners = CalendarUIActivity.MoreEventInfoActionListener.class), @EventConfig(listeners = CalendarUIActivity.AcceptEventActionListener.class), @EventConfig(listeners = CalendarUIActivity.AssignTaskActionListener.class),
+    @EventConfig(listeners = BaseUIActivity.DeleteCommentActionListener.class, confirm = "UIActivity.msg.Are_You_Sure_To_Delete_This_Comment"), @EventConfig(listeners = CalendarUIActivity.AcceptEventActionListener.class), @EventConfig(listeners = CalendarUIActivity.AssignTaskActionListener.class),
     @EventConfig(listeners = CalendarUIActivity.SetTaskStatusActionListener.class) }
 
 )
 public class CalendarUIActivity extends BaseUIActivity {
   private static final Log log                = ExoLogger.getLogger(CalendarUIActivity.class);
-
-  private boolean          displayMoreInfo    = false;
 
   private boolean          isAnswered         = false;
 
@@ -43,6 +43,8 @@ public class CalendarUIActivity extends BaseUIActivity {
   private boolean          isTaskAssignedToMe = false;
 
   private boolean          isTaskDone         = false;
+  
+  private boolean          eventNotFound      = false;
 
   private String           taskStatus;
 
@@ -56,14 +58,21 @@ public class CalendarUIActivity extends BaseUIActivity {
     try {
       eventId = getActivity().getTemplateParams().get(CalendarSpaceActivityPublisher.EVENT_ID_KEY);
       calendarId = getActivity().getTemplateParams().get(CalendarSpaceActivityPublisher.CALENDAR_ID_KEY);
-      User user = (User) ConversationState.getCurrent().getAttribute(CacheUserProfileFilter.USER_PROFILE);
-      String username = user.getUserName();      
+      String username = ConversationState.getCurrent().getIdentity().getUserId();      
       CalendarService calService = (CalendarService) PortalContainer.getInstance().getComponentInstanceOfType(CalendarService.class);
       CalendarEvent event = null;
-      event = calService.getGroupEvent(calendarId, eventId);
+      try {
+        event = calService.getGroupEvent(calendarId, eventId);
+      } catch (PathNotFoundException pnf) {
+        if (log.isDebugEnabled()) 
+          log.debug("Couldn't find the event: " + eventId, pnf);
+      }
+      if (event == null) {
+        eventNotFound = true;
+        return;
+      }
       Map<String, String> pars = new HashMap<String, String>();
       if (event.getEventType().equalsIgnoreCase(CalendarEvent.TYPE_EVENT) && event.getParticipantStatus() != null) {
-
         for (String part : event.getParticipantStatus()) {
           String[] entry = part.split(":");
           if (entry.length > 1)
@@ -81,7 +90,7 @@ public class CalendarUIActivity extends BaseUIActivity {
         taskStatus = event.getEventState();
         String taskDelegator = event.getTaskDelegator();
         if (taskDelegator != null) {
-          if (taskDelegator.indexOf(user.getUserName()) >= 0) {
+          if (taskDelegator.indexOf(username) >= 0) {
             isTaskAssignedToMe = true;
           }
         }
@@ -94,6 +103,27 @@ public class CalendarUIActivity extends BaseUIActivity {
 
   }
 
+  /** used by the template **/
+  private String getTitleTemplate() {
+    String typeOfEvent = getTypeOfEvent();
+    String titleKey = "";
+    if (CalendarSpaceActivityPublisher.EVENT_ADDED.equals(typeOfEvent)) {
+      titleKey = "CalendarUIActivity.msg.event-add";
+    } else if (CalendarSpaceActivityPublisher.TASK_ADDED.equals(typeOfEvent)) {
+      titleKey = "CalendarUIActivity.msg.task-add";
+    } else if (CalendarSpaceActivityPublisher.EVENT_UPDATED.equals(typeOfEvent)) {
+      titleKey = "CalendarUIActivity.msg.event-update";
+    } else if (CalendarSpaceActivityPublisher.TASK_UPDATED.equals(typeOfEvent)) {
+      titleKey = "CalendarUIActivity.msg.task-update";
+    }
+    return WebuiRequestContext.getCurrentInstance().getApplicationResourceBundle().getString(titleKey);
+  }
+  
+  /** used by the template **/
+  private String getSummary() {
+    return getActivityParamValue(CalendarSpaceActivityPublisher.EVENT_SUMMARY_KEY);
+  }
+  
   /**
    * @return the taskStatus
    */
@@ -157,20 +187,6 @@ public class CalendarUIActivity extends BaseUIActivity {
     return isInvited;
   }
 
-  /**
-   * @return the displayMoreInfo
-   */
-  public boolean isDisplayMoreInfo() {
-    return displayMoreInfo;
-  }
-
-  /**
-   * @param displayMoreInfo the displayMoreInfo to set
-   */
-  public void setDisplayMoreInfo(boolean displayMoreInfo) {
-    this.displayMoreInfo = displayMoreInfo;
-  }
-
   public String getActivityParamValue(String key) {
     String value = null;
     Map<String, String> params = getActivity().getTemplateParams();
@@ -206,16 +222,12 @@ public class CalendarUIActivity extends BaseUIActivity {
 
   public String getDescription() {
     String des = getActivityParamValue(CalendarSpaceActivityPublisher.EVENT_DESCRIPTION_KEY);
-    if (des == null)
-      des = "";
-    return des;
+    return des != null ? des : "";
   }
 
   public String getLocation() {
     String des = getActivityParamValue(CalendarSpaceActivityPublisher.EVENT_LOCALE_KEY);
-    if (des == null)
-      des = "";
-    return des;
+    return des != null ? des : "";
   }
 
   public String getEventEndTime(WebuiBindingContext ctx) {
@@ -236,19 +248,6 @@ public class CalendarUIActivity extends BaseUIActivity {
     calendar.setTimeInMillis(time);
 
     return dformat.format(calendar.getTime());
-
-  }
-
-  public static class MoreEventInfoActionListener extends EventListener<CalendarUIActivity> {
-
-    @Override
-    public void execute(Event<CalendarUIActivity> event) throws Exception {
-      CalendarUIActivity uiComponent = event.getSource();
-      WebuiRequestContext requestContext = event.getRequestContext();
-      boolean display = uiComponent.isDisplayMoreInfo();
-      uiComponent.setDisplayMoreInfo(!display);
-      requestContext.addUIComponentToUpdateByAjax(uiComponent);
-    }
 
   }
 

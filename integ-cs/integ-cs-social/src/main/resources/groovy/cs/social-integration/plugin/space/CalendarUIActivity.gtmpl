@@ -28,7 +28,6 @@
   import org.exoplatform.social.webui.Utils;
   import org.exoplatform.social.core.service.LinkProvider;
   /* this block is required for rendering calendar content */
-  import org.exoplatform.cs.ext.impl.CalendarSpaceActivityPublisher;
   import org.exoplatform.calendar.service.CalendarEvent;
   /* end block */
 
@@ -157,42 +156,35 @@
       <span class="BorderBottom"></span>
     </a>
     <div class="ContentBox" id="ContextBox${activity.id}">
-      <h5 class="TitleContent ClearFix">
-        <a class="Text" title="$ownerName" href="$ownerUri">$ownerName</a>
+    <% /* begin the block for rendering the calendar activity content */ %>
+      <div class="TitleBlock TextBold">
+      <% uicomponent.init(); %>
+      <%
+        def ownerTag = '<a class="Text" title="' + ownerName + '" href="' + ownerUri + '">' + ownerName + '</a>';
+        def title = uicomponent.getTitleTemplate();
+        title = title.replace("{0}", ownerTag).replace("{1}", "<strong>" + uicomponent.getSummary() + "</strong>");
+        print title;
+      %>
       <% if (activityDeletable) {%>
         <span onclick="<%= uicomponent.event("DeleteActivity", uicomponent.getId(), ""); %>" class="CloseContentBoxNormal" id="DeleteActivityButton${activity.id}"></span>
       <%}%>
-      </h5>
-      <% /* begin the block for rendering the calendar activity content */ %>
+      </div>
       <div class="BoxGray" >
-      <div class="Content ">
-      <% uicomponent.init(); %>
-    <div class="TextBold">
-     <%
-          def labelEventAdded = "";
-          if (CalendarSpaceActivityPublisher.EVENT_ADDED.equals(uicomponent.getTypeOfEvent())) {
-            labelEventAdded = _ctx.appRes("CalendarUIActivity.msg.event-add");
-          } else if (CalendarSpaceActivityPublisher.TASK_ADDED.equals(uicomponent.getTypeOfEvent())) {
-            labelEventAdded = _ctx.appRes("CalendarUIActivity.msg.task-add");
-          } else if (CalendarSpaceActivityPublisher.EVENT_UPDATED.equals(uicomponent.getTypeOfEvent())) {
-            labelEventAdded = _ctx.appRes("CalendarUIActivity.msg.event-update");
-          } else if (CalendarSpaceActivityPublisher.TASK_UPDATED.equals(uicomponent.getTypeOfEvent())) {
-            labelEventAdded = _ctx.appRes("CalendarUIActivity.msg.task-update");
-          }
-        %>
-        <%= labelEventAdded.replace("{0}", uicomponent.getActivityParamValue(CalendarSpaceActivityPublisher.EVENT_SUMMARY_KEY)) %><br>
-    </div>
-     <div><a  style="cursor: pointer;" onclick="<%=uicomponent.event("MoreEventInfo");%>" id="MoreEventInfo${activity.id}"><span><%=_ctx.appRes("CalendarUIActivity.label.more-info")%></span></a></div>
-
-        <% if (uicomponent.isDisplayMoreInfo()) { %>
-        <div class=" ClearFix">
-        <%=_ctx.appRes("CalendarUIActivity.msg.event.label.description") + uicomponent.getDescription();%> <br>
-        <%=_ctx.appRes("CalendarUIActivity.msg.event.label.location") + uicomponent.getLocation();%> <br>
-        <%=_ctx.appRes("CalendarUIActivity.msg.event.label.start-time") + uicomponent.getEventStartTime(_ctx);%> <br>
-        <%=_ctx.appRes("CalendarUIActivity.msg.event.label.end-time") + uicomponent.getEventEndTime(_ctx);%> <br>       
-        </div>
-        <% } %>
-        </div>
+        <div class="Content ">
+          <div class="TextBold">
+            <%
+              if (uicomponent.eventNotFound) {
+                print "<div class='portlet-msg-alert Warning' style='padding-left:20px' >" + _ctx.appRes("CalendarUIActivity.msg.event-not-found") + "</div>";
+              } else {
+            %>
+            <%=_ctx.appRes("CalendarUIActivity.msg.event.label.description") + uicomponent.getDescription();%> <br>
+            <%=_ctx.appRes("CalendarUIActivity.msg.event.label.location") + uicomponent.getLocation();%> <br>
+            <%=_ctx.appRes("CalendarUIActivity.msg.event.label.start-time") + uicomponent.getEventStartTime(_ctx);%> <br>
+            <%=_ctx.appRes("CalendarUIActivity.msg.event.label.end-time") + uicomponent.getEventEndTime(_ctx);%> <br>
+            <% } %>
+          </div>
+  
+          </div>
       </div>
       <% /* end the block for rendering the calendar activity content */ %>
       <div class="DefaultActivityIcon">
@@ -226,13 +218,13 @@
      <% }%>
      <% /* begin the block for rendering the calendar actions */ %>
      <%
-     if (uicomponent.isInvited && !uicomponent.isAnswered && uicomponent.getTypeOfEvent().contains("Event")) {
+     if (!uicomponent.eventNotFound && uicomponent.isInvited && !uicomponent.isAnswered && uicomponent.getTypeOfEvent().contains("Event")) {
      %>
        | 
        <a  onclick="<%=uicomponent.event("AcceptEvent", "true");%>"  id="AcceptButton${activity.id}" /><%=_ctx.appRes("CalendarUIActivity.label.accept-invite")%></a>
        | 
        <a  onclick="<%=uicomponent.event("AcceptEvent", "false");%>"   id="RefuseButton${activity.id}" /><%=_ctx.appRes("CalendarUIActivity.label.refuse-invite")%></a>
-     <% } else if (uicomponent.getTypeOfEvent().contains("Task")) { %>
+     <% } else if (!uicomponent.eventNotFound && uicomponent.getTypeOfEvent().contains("Task")) { %>
        <% if (!uicomponent.isTaskAssigned()) { %>
           | 
          <a  onclick="<%=uicomponent.event("AssignTask", "me");%>"   id="AssignButton${activity.id}" /><%=_ctx.appRes("CalendarUIActivity.label.assign-to-me")%></a>

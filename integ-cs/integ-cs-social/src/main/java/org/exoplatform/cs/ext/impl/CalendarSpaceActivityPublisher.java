@@ -24,9 +24,11 @@ import org.exoplatform.calendar.service.impl.CalendarEventListener;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.manager.IdentityManager;
@@ -83,62 +85,51 @@ public class CalendarSpaceActivityPublisher extends CalendarEventListener {
     return params;
   }
 
-  public void savePublicEvent(CalendarEvent event, String calendarId) {
+  private void publishActivity(CalendarEvent event, String calendarId, String eventType) {
     try {
-      Class.forName("org.exoplatform.social.core.manager.IdentityManager");
-
-      if (calendarId == null || calendarId.indexOf(CalendarDataInitialize.CALENDAR_ID_PREFIX) < 0) {
-        return;
+      Class.forName("org.exoplatform.social.core.space.spi.SpaceService");
+    } catch (ClassNotFoundException e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("eXo Social components not found!", e);
       }
-      ExoSocialActivity activity = new ExoSocialActivityImpl();
-      String eventType = event.getEventType().equalsIgnoreCase(CalendarEvent.TYPE_EVENT) ? EVENT_ADDED : TASK_ADDED;
-      activity.setTitle(event.getSummary());
-      activity.setBody(event.getDescription());
-      activity.setType(CALENDAR_APP_ID);
-      activity.setTemplateParams(makeActivityParams(event, calendarId, eventType));
-
-      IdentityManager indentityM = (IdentityManager) PortalContainer.getInstance().getComponentInstanceOfType(IdentityManager.class);
+      return;
+    }
+    if (calendarId == null || calendarId.indexOf(CalendarDataInitialize.CALENDAR_ID_PREFIX) < 0) {
+      return;
+    }
+    try {
+      IdentityManager identityM = (IdentityManager) PortalContainer.getInstance().getComponentInstanceOfType(IdentityManager.class);
       ActivityManager activityM = (ActivityManager) PortalContainer.getInstance().getComponentInstanceOfType(ActivityManager.class);
       SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
       String spaceId = calendarId.split(CalendarDataInitialize.CALENDAR_ID_PREFIX)[1];
       Space space = spaceService.getSpaceById(spaceId);
       if (space != null) {
-        Identity spaceIdentity = indentityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
-        activityM.saveActivity(spaceIdentity, activity);
+        String userId = ConversationState.getCurrent().getIdentity().getUserId();
+        Identity spaceIdentity = identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
+        Identity userIdentity = identityM.getOrCreateIdentity(OrganizationIdentityProvider.NAME, userId, false);
+        ExoSocialActivity activity = new ExoSocialActivityImpl();
+        activity.setUserId(userIdentity.getId());
+        activity.setTitle(event.getSummary());
+        activity.setBody(event.getDescription());
+        activity.setType(CALENDAR_APP_ID);
+        activity.setTemplateParams(makeActivityParams(event, calendarId, eventType));
+
+        activityM.saveActivityNoReturn(spaceIdentity, activity);
       }
     } catch (Exception e) {
       if (LOG.isErrorEnabled())
         LOG.error("Can not record Activity for space when event added ", e);
     }
-
+  }
+  
+  public void savePublicEvent(CalendarEvent event, String calendarId) {
+    String eventType = event.getEventType().equalsIgnoreCase(CalendarEvent.TYPE_EVENT) ? EVENT_ADDED : TASK_ADDED;
+    publishActivity(event, calendarId, eventType);
   }
 
   public void updatePublicEvent(CalendarEvent event, String calendarId) {
-    try {
-      Class.forName("org.exoplatform.social.core.manager.IdentityManager");
-      if (calendarId == null || calendarId.indexOf(CalendarDataInitialize.CALENDAR_ID_PREFIX) < 0) {
-        return;
-      }
-      ExoSocialActivity activity = new ExoSocialActivityImpl();
-      activity.setTitle(event.getSummary());
-      activity.setBody(event.getDescription());
-      String eventType = event.getEventType().equalsIgnoreCase(CalendarEvent.TYPE_EVENT) ? EVENT_UPDATED : TASK_UPDATED;
-      activity.setType(CALENDAR_APP_ID);
-      activity.setTemplateParams(makeActivityParams(event, calendarId, eventType));
-      IdentityManager indentityM = (IdentityManager) PortalContainer.getInstance().getComponentInstanceOfType(IdentityManager.class);
-      ActivityManager activityM = (ActivityManager) PortalContainer.getInstance().getComponentInstanceOfType(ActivityManager.class);
-      SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
-      String spaceId = calendarId.split(CalendarDataInitialize.CALENDAR_ID_PREFIX)[1];
-      Space space = spaceService.getSpaceById(spaceId);
-      if (space != null) {
-        Identity spaceIdentity = indentityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
-        activityM.saveActivity(spaceIdentity, activity);
-      }
-    } catch (Exception e) {
-      if (LOG.isErrorEnabled())
-        LOG.error("Can not record Activity for space when event updated ", e);
-    }
-
+    String eventType = event.getEventType().equalsIgnoreCase(CalendarEvent.TYPE_EVENT) ? EVENT_UPDATED : TASK_UPDATED;
+    publishActivity(event, calendarId, eventType);
   }
 
 }
