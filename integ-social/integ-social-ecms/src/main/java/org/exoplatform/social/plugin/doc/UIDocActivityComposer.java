@@ -57,6 +57,7 @@ import org.exoplatform.webui.core.UIContainer;
 import org.exoplatform.webui.core.UIPopupWindow;
 import org.exoplatform.webui.event.Event;
 import org.exoplatform.webui.event.EventListener;
+import org.exoplatform.webui.form.UIFormStringInput;
 
 /**
  * The templateParamsProcessor to process an activity. Replace template
@@ -71,7 +72,8 @@ import org.exoplatform.webui.event.EventListener;
     @EventConfig(listeners = UIActivityComposer.CloseActionListener.class),
     @EventConfig(listeners = UIActivityComposer.SubmitContentActionListener.class),
     @EventConfig(listeners = UIActivityComposer.ActivateActionListener.class),
-    @EventConfig(listeners = UIDocActivityComposer.SelectDocumentActionListener.class)
+    @EventConfig(listeners = UIDocActivityComposer.SelectDocumentActionListener.class),
+    @EventConfig(listeners = UIDocActivityComposer.RemoveDocumentActionListener.class)
   }
 )
 public class UIDocActivityComposer extends UIActivityComposer implements UISelectable {
@@ -93,6 +95,7 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
    * constructor
    */
   public UIDocActivityComposer() {
+    addChild(new UIFormStringInput("InputDoc", "InputDoc", null));
     resetValues();
   }
 
@@ -333,4 +336,14 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
       event.getRequestContext().addUIComponentToUpdateByAjax(uiPopup);
     }
   }
+  
+  public static class RemoveDocumentActionListener  extends EventListener<UIDocActivityComposer> {
+    @Override
+    public void execute(Event<UIDocActivityComposer> event) throws Exception {
+      final UIDocActivityComposer docActivityComposer = event.getSource();
+      // Reset values
+      docActivityComposer.resetValues();
+    }
+  }
+  
 }
