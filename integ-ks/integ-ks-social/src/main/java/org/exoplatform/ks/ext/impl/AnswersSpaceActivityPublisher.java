@@ -16,13 +16,16 @@
  */
 package org.exoplatform.ks.ext.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.faq.service.Answer;
 import org.exoplatform.faq.service.Comment;
+import org.exoplatform.faq.service.FAQNodeTypes;
 import org.exoplatform.faq.service.FAQService;
 import org.exoplatform.faq.service.Question;
 import org.exoplatform.faq.service.Utils;
@@ -67,165 +70,131 @@ public class AnswersSpaceActivityPublisher extends AnswerEventListener {
   public static final String COMMENT_UPDATE = COMMENT + "Update";
   
   private static Log LOG = ExoLogger.getExoLogger(AnswerEventListener.class);
-
+  
+  private boolean isCategoryPublic(String categoryId, List<String> categories) throws Exception {
+    if (categoryId != null) {
+      FAQService faqS = (FAQService) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(FAQService.class);
+      String[] users = (String[]) faqS.readCategoryProperty(categoryId, FAQNodeTypes.EXO_USER_PRIVATE, String[].class);
+      int parentIndex = categories.indexOf(categoryId) - 1; 
+        
+      return org.exoplatform.forum.service.Utils.isEmpty(users) && (parentIndex < 0 ? true : isCategoryPublic(categories.get(parentIndex), categories));
+    }
+    return false;
+  }
+  
+  private boolean isQuestionPublic(Question question) {
+    // the question is public if it is not activated or approved
+    return question != null && question.isActivated() && question.isApproved();
+  }
+  
+  private boolean isAnswerPublic(Answer answer) {
+    // the answer is public if it is not activated or approved
+    return answer != null && answer.getApprovedAnswers() && answer.getActivateAnswers();
+  }
+  
+  private Identity getSpaceIdentity(String categoryId) {
+    if (categoryId.indexOf(Utils.CATE_SPACE_ID_PREFIX) < 0) 
+      return null;
+    String prettyname = categoryId.split(Utils.CATE_SPACE_ID_PREFIX)[1];
+    IdentityManager identityM = (IdentityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(IdentityManager.class);
+    SpaceService spaceService  = (SpaceService) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(SpaceService.class);
+    Space space = spaceService.getSpaceByPrettyName(prettyname);
+    if (space != null)
+      return identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
+    else return null;
+  }
+  
+  private ExoSocialActivity newActivity(Identity author, String title, String body, Map<String, String> templateParams) {
+    ExoSocialActivity activity = new ExoSocialActivityImpl();
+    activity.setUserId(author.getId());
+    activity.setTitle(title);
+    activity.setBody(body);
+    activity.setType(SPACE_APP_ID);
+    activity.setTemplateParams(templateParams);
+    return activity;
+  }
+  
+  private Map<String, String> updateTemplateParams(Map<String, String> templateParams, String activityType, String questionId, String questionName, String language, String link) {
+    templateParams.put(QUESTION_ID_KEY, questionId);
+    templateParams.put(ACTIVITY_TYPE_KEY, activityType);
+    templateParams.put(QUESTION_NAME_KEY, questionName);
+    templateParams.put(LINK_KEY, link);
+    templateParams.put(LANGUAGE_KEY, language);
+    return templateParams;
+  }
+  
   @Override
   public void saveAnswer(String questionId, Answer answer, boolean isNew) {
     try {
-      Class.forName("org.exoplatform.social.core.manager.IdentityManager");
-      FAQService faqS = (FAQService) ExoContainerContext.getCurrentContainer()
-                                                    .getComponentInstanceOfType(FAQService.class);
-      Question q = faqS.getQuestionById(questionId);
-      
-      String catId = q.getCategoryId();
-      
-      if (catId == null || catId.indexOf(Utils.CATE_SPACE_ID_PREFIX) < 0) {
-        return;
-      }
-      
-      if (!q.isActivated() || !q.isApproved() || !answer.getApprovedAnswers() || !answer.getActivateAnswers()) {
-        // Do not make activity if the question is not activated or approved or the answer is that also. 
-        return;
-      }
-      
-      //TODO resource bundle needed 
-      String prettyname = catId.split(Utils.CATE_SPACE_ID_PREFIX)[1];
       ExoContainer exoContainer = ExoContainerContext.getCurrentContainer();
       IdentityManager identityM = (IdentityManager) exoContainer.getComponentInstanceOfType(IdentityManager.class);
       ActivityManager activityM = (ActivityManager) exoContainer.getComponentInstanceOfType(ActivityManager.class);
-      SpaceService spaceService  = (SpaceService)exoContainer.getComponentInstanceOfType(SpaceService.class);
-      Space space = spaceService.getSpaceByPrettyName(prettyname);
-      
-      Identity spaceIdentity = identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
-      Identity userIdentity = identityM.getOrCreateIdentity(OrganizationIdentityProvider.NAME, answer.getResponseBy(), false);
-      ExoSocialActivity activity = new ExoSocialActivityImpl();
-      activity.setUserId(userIdentity.getId());
-      activity.setTitle("@"+answer.getResponseBy());
-      activity.setBody(answer.getResponses());
-      activity.setType(SPACE_APP_ID);
-      Map<String, String> params = new HashMap<String, String>();
-      params.put(QUESTION_ID_KEY, questionId);
-      params.put(ACTIVITY_TYPE_KEY, isNew ? ANSWER_ADD : ANSWER_UPDATE);
-      params.put(ANSWER_ID_KEY, answer.getId());
-      params.put(AUTHOR_KEY, answer.getResponseBy());
-      params.put(QUESTION_NAME_KEY, q.getQuestion());
-      params.put(LINK_KEY, q.getLink());
-      params.put(LANGUAGE_KEY, q.getLanguage());
-      activity.setTemplateParams(params);
-      activityM.saveActivityNoReturn(spaceIdentity, activity);
-
-    } catch (ClassNotFoundException e) {
-      if (LOG.isDebugEnabled())
-        LOG.debug("Please check the integrated project does the social deploy? " + e.getMessage());
-    } catch (Exception e) {
-      LOG.error("Can not record Activity for space when post answer " + e.getMessage());
+      FAQService faqS = (FAQService) exoContainer.getComponentInstanceOfType(FAQService.class);
+      if (isAnswerPublic(answer)) {
+        Question q = faqS.getQuestionById(questionId);
+        if (isQuestionPublic(q)) {
+          Identity userIdentity = identityM.getOrCreateIdentity(OrganizationIdentityProvider.NAME, answer.getResponseBy(), false);
+          Identity streamOwner = null, author = userIdentity;
+          String catId = q.getCategoryId();
+          Identity spaceIdentity = getSpaceIdentity(catId);
+          if (spaceIdentity != null) {
+            // publish the activity in the space stream.
+            streamOwner = spaceIdentity;
+          }
+          List<String> categoryIds = faqS.getCategoryPath(catId);
+          Collections.reverse(categoryIds);
+          if (isCategoryPublic(catId, categoryIds)) {
+            // publish the activity in the user stream.
+            streamOwner = userIdentity;
+          }
+          String activityType = isNew ? ANSWER_ADD : ANSWER_UPDATE;
+          if (streamOwner != null) {
+            Map<String, String> templateParams = updateTemplateParams(new HashMap<String, String>(), activityType, questionId, q.getQuestion(), q.getLanguage(), q.getLink());
+            templateParams.put(ANSWER_ID_KEY, answer.getId());
+            templateParams.put(AUTHOR_KEY, answer.getResponseBy());
+            activityM.saveActivityNoReturn(streamOwner, newActivity(author, "@" + answer.getResponseBy(), answer.getResponses(), templateParams));
+          }
+        }
+      }
+    }  catch (Exception e) {
+      LOG.error("Can not record Activity for space when post answer ", e);
     }
 
   }
 
   @Override
-  public void saveComment(String questionId, Comment comment, boolean isNew) {
-    /*try {
-      Class.forName("org.exoplatform.social.core.manager.IdentityManager");
-      FAQService faqS = (FAQService) ExoContainerContext.getCurrentContainer()
-                                                    .getComponentInstanceOfType(FAQService.class);
-      Question q = faqS.getQuestionById(questionId);
-      
-      String catId = q.getCategoryId();
-      if (catId == null || catId.indexOf(Utils.CATE_SPACE_ID_PREFIX) < 0) {
-        return;
-      }
-      
-      //TODO resource bundle needed 
-//      String msg = "@"+comment.getCommentBy() + " has commented: <a href=" + q.getLink() + ">"
-//          + q.getQuestion() + "</a>";
-      String msg = "@" + comment.getCommentBy();
-      String body = comment.getComments();
-      String spaceId = catId.split(Utils.CATE_SPACE_ID_PREFIX)[1];
-      IdentityManager indentityM = (IdentityManager) ExoContainerContext.getCurrentContainer()
-                                                                    .getComponentInstanceOfType(IdentityManager.class);
-      ActivityManager activityM = (ActivityManager) ExoContainerContext.getCurrentContainer()
-                                                                   .getComponentInstanceOfType(ActivityManager.class);
-      // SpaceService spaceS = (SpaceService)
-      // ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(SpaceService.class);
-      // Space space = spaceS.getSpaceById(spaceId) ;
-      Identity spaceIdentity = indentityM.getOrCreateIdentity(SpaceIdentityProvider.NAME,
-                                                              spaceId,
-                                                              false);
-      Activity activity = new Activity();
-      activity.setTitle(msg);
-      activity.setBody(body);
-      activity.setType(SPACE_APP_ID);
-      Map<String, String> params = new HashMap<String, String>();
-      params.put(QUESTION_ID_KEY, questionId);
-      params.put(ACTIVITY_TYPE_KEY, isNew ? COMMENT_ADD : COMMENT_UPDATE);
-      params.put(COMMENT_ID_KEY, comment.getId());
-      params.put(AUTHOR_KEY, comment.getCommentBy());
-      params.put(QUESTION_NAME_KEY, q.getQuestion());
-      params.put(LINK_KEY, q.getLink());
-      params.put(LANGUAGE_KEY, q.getLanguage());
-      activity.setTemplateParams(params);
-      
-      activityM.recordActivity(spaceIdentity, activity);
-
-    } catch (ClassNotFoundException e) {
-      if (LOG.isDebugEnabled())
-        LOG.debug("Please check the integrated project does the social deploy? " + e.getMessage());
-    } catch (Exception e) {
-      LOG.error("Can not record Activity for space when add comment " + e.getMessage());
-    }*/
-  }
+  public void saveComment(String questionId, Comment comment, boolean isNew) {}
 
   @Override
   public void saveQuestion(Question question, boolean isNew) {
     try {
-      Class.forName("org.exoplatform.social.core.manager.IdentityManager");
-      String catId = question.getCategoryId();
-      if (catId == null || catId.indexOf(Utils.CATE_SPACE_ID_PREFIX) < 0) {
-        return;
-      }
-
-      if (!question.isActivated() || !question.isApproved()) {
-        // filter the question if it is not approved or not activated.
-        return;
-      }
-      // TODO resource bundle needed
-      String msg = "@" + question.getAuthor();
-      String body = question.getDetail();
-      String prettyname = catId.split(Utils.CATE_SPACE_ID_PREFIX)[1];
-      if (prettyname.indexOf("/") > 0) {
-        prettyname = prettyname.substring(0, prettyname.indexOf("/"));
-      }
-      ExoContainer exoContainer = ExoContainerContext.getCurrentContainer();
-      SpaceService spaceService = (SpaceService) exoContainer.getComponentInstanceOfType(SpaceService.class);
-      Space space = spaceService.getSpaceByPrettyName(prettyname);
-      if (space != null) {
+      if (isQuestionPublic(question)) {
+        ExoContainer exoContainer = ExoContainerContext.getCurrentContainer();
         IdentityManager identityM = (IdentityManager) exoContainer.getComponentInstanceOfType(IdentityManager.class);
         ActivityManager activityM = (ActivityManager) exoContainer.getComponentInstanceOfType(ActivityManager.class);
-        Identity spaceIdentity = identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, prettyname, false);
+        FAQService faqS = (FAQService) exoContainer.getComponentInstanceOfType(FAQService.class);
         Identity userIdentity = identityM.getOrCreateIdentity(OrganizationIdentityProvider.NAME, question.getAuthor(), false);
-        ExoSocialActivity activity = new ExoSocialActivityImpl();
-        activity.setUserId(userIdentity.getId());
-        activity.setTitle(msg);
-        activity.setBody(body);
-        activity.setType(SPACE_APP_ID);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(QUESTION_ID_KEY, question.getId());
-        params.put(ACTIVITY_TYPE_KEY, isNew ? QUESTION_ADD : QUESTION_UPDATE);
-        params.put(QUESTION_NAME_KEY, question.getQuestion());
-        params.put(LINK_KEY, question.getLink());
-        params.put(LANGUAGE_KEY, question.getLanguage());
-        activity.setTemplateParams(params);
-        activityM.saveActivityNoReturn(spaceIdentity, activity);
-      } else {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Can not record Activity for space when add new question, because the space no longer exist.");
+        Identity streamOwner = null, author = userIdentity;
+        String catId = (String) faqS.readQuestionProperty(question.getId(), FAQNodeTypes.EXO_CATEGORY_ID, String.class);
+        Identity spaceIdentity = getSpaceIdentity(catId);
+        if (spaceIdentity != null) {
+          // publish the activity in the space stream.
+          streamOwner = spaceIdentity;
+        }
+        List<String> categoryIds = faqS.getCategoryPath(catId);
+        Collections.reverse(categoryIds);
+        if (isCategoryPublic(catId, categoryIds)) {
+          streamOwner = userIdentity;
+        }
+        if (streamOwner != null) {
+          Map<String, String> templateParams = updateTemplateParams(new HashMap<String, String>(), isNew ? QUESTION_ADD : QUESTION_UPDATE, question.getId(), question.getQuestion(), question.getLanguage(), question.getLink());
+          activityM.saveActivityNoReturn(streamOwner, newActivity(author, "@" + question.getAuthor(), question.getDetail(), templateParams));
         }
       }
-    } catch (ClassNotFoundException e) {
-      if (LOG.isDebugEnabled())
-        LOG.debug("Please check the integrated project does the social deploy? ", e);
+      
+      
     } catch (Exception e) {
-      LOG.error("Can not record Activity for space when add new questin ", e);
+      LOG.error("Can not record Activity for space when add new question ", e);
     }
   }
 
@@ -233,15 +202,6 @@ public class AnswersSpaceActivityPublisher extends AnswerEventListener {
   public void saveAnswer(String questionId, Answer[] answers, boolean isNew) {
     try {
       Class.forName("org.exoplatform.social.core.manager.IdentityManager");
-      FAQService faqS = (FAQService) ExoContainerContext.getCurrentContainer()
-                                                    .getComponentInstanceOfType(FAQService.class);
-      Question q = faqS.getQuestionById(questionId);
-      
-      String catId = q.getCategoryId();
-      if (catId == null || catId.indexOf(Utils.CATE_SPACE_ID_PREFIX) < 0) {
-        return;
-      }
-      
       if (answers != null) {
         for (Answer a : answers) {
           saveAnswer(questionId, a, isNew);
