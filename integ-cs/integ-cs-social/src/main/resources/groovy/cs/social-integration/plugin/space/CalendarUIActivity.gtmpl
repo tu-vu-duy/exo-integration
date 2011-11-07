@@ -186,8 +186,14 @@
   
           </div>
       </div>
+	  <%
+	  def calendarIconClass = "EventActivityIcon";
+	  if (uicomponent.getTypeOfEvent().contains("Task")) {
+		calendarIconClass = "TaskActivityIcon";
+	  } 
+	  %>
       <% /* end the block for rendering the calendar activity content */ %>
-      <div class="DefaultActivityIcon">
+      <div class="DefaultActivityIcon $calendarIconClass">
         <% if (uicomponent.isUserActivity() && uicomponent.isSpaceStreamOwner() && !uicomponent.isUISpaceActivitiesDisplay()) {%>
         	<%
           	Space spaceSource = Utils.getSpaceService().getSpaceByPrettyName(streamOwner);
