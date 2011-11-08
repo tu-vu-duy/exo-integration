@@ -117,7 +117,8 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
       templateParams.put(POST_NAME_KEY, ForumTransformHTML.getTitleInHTMLCode(name));
       templateParams.put(POST_OWNER_KEY, owner);
     } else {
-      templateParams.put(TOPIC_LINK_KEY, id);
+      templateParams.put(TOPIC_ID_KEY, id);
+      templateParams.put(TOPIC_LINK_KEY, link);
       templateParams.put(TOPIC_NAME_KEY, ForumTransformHTML.getTitleInHTMLCode(name));
       templateParams.put(TOPIC_OWNER_KEY, owner);
     }
@@ -174,7 +175,7 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
             // publish the activity in the space stream. 
             ownerStream = getSpaceIdentity(forumId);
           }
-          if (isCategoryPublic(forumService.getCategory(categoryId)) && isForumPublic(forumService.getForum(categoryId, forumId))) {
+          if (ownerStream == null && isCategoryPublic(forumService.getCategory(categoryId)) && isForumPublic(forumService.getForum(categoryId, forumId))) {
             ownerStream = userIdentity;
           }
           if (ownerStream != null) {
@@ -200,7 +201,7 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
         if (hasSpace(forumId)) {
           ownerStream = getSpaceIdentity(forumId);
         }
-        if (isCategoryPublic(forumService.getCategory(categoryId)) && isForumPublic(forumService.getForum(categoryId, forumId))) {
+        if (ownerStream == null && isCategoryPublic(forumService.getCategory(categoryId)) && isForumPublic(forumService.getForum(categoryId, forumId))) {
           // if the category and the forum are public, publishing the activity on the user stream.
           ownerStream = userIdentity;
         }

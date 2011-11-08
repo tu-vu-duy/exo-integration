@@ -75,7 +75,7 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
     templateParams.put(PAGE_OWNER_KEY, wikiOwner);
     templateParams.put(PAGE_TYPE_KEY, wikiType);
     templateParams.put(PAGE_TITLE_KEY, page.getTitle());    
-    String pageURL = (page.getURL() == null) ? spaceUrl + "/" + WIKI_PAGE_NAME : page.getURL();
+    String pageURL = (page.getURL() == null) ? (spaceUrl != null ? spaceUrl : "")  + "/" + WIKI_PAGE_NAME : page.getURL();
     templateParams.put(URL_KEY, pageURL);
     
     String excerpt = StringUtils.EMPTY;
@@ -137,7 +137,7 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
       }
     }
     
-    if (isPublic(page)) {
+    if (ownerStream == null && isPublic(page)) {
       // if the page is public, publishing the activity in the user stream.
       ownerStream = userIdentity;
     }

@@ -143,7 +143,7 @@ public class AnswersSpaceActivityPublisher extends AnswerEventListener {
           }
           List<String> categoryIds = faqS.getCategoryPath(catId);
           Collections.reverse(categoryIds);
-          if (isCategoryPublic(catId, categoryIds)) {
+          if (streamOwner == null && isCategoryPublic(catId, categoryIds)) {
             // publish the activity in the user stream.
             streamOwner = userIdentity;
           }
@@ -183,7 +183,7 @@ public class AnswersSpaceActivityPublisher extends AnswerEventListener {
         }
         List<String> categoryIds = faqS.getCategoryPath(catId);
         Collections.reverse(categoryIds);
-        if (isCategoryPublic(catId, categoryIds)) {
+        if (streamOwner == null && isCategoryPublic(catId, categoryIds)) {
           streamOwner = userIdentity;
         }
         if (streamOwner != null) {
