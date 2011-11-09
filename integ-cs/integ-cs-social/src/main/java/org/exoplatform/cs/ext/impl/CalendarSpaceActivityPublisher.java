@@ -94,14 +94,14 @@ public class CalendarSpaceActivityPublisher extends CalendarEventListener {
       }
       return;
     }
-    if (calendarId == null || calendarId.indexOf(CalendarDataInitialize.CALENDAR_ID_PREFIX) < 0) {
+    if (calendarId == null || calendarId.indexOf(CalendarDataInitialize.SPACE_CALENDAR_ID_SUFFIX) < 0) {
       return;
     }
     try {
       IdentityManager identityM = (IdentityManager) PortalContainer.getInstance().getComponentInstanceOfType(IdentityManager.class);
       ActivityManager activityM = (ActivityManager) PortalContainer.getInstance().getComponentInstanceOfType(ActivityManager.class);
       SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
-      String spaceId = calendarId.split(CalendarDataInitialize.CALENDAR_ID_PREFIX)[1];
+      String spaceId = calendarId.split(CalendarDataInitialize.SPACE_CALENDAR_ID_SUFFIX)[0];
       Space space = spaceService.getSpaceById(spaceId);
       if (space != null) {
         String userId = ConversationState.getCurrent().getIdentity().getUserId();
