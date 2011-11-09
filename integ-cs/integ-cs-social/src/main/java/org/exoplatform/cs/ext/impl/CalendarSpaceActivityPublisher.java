@@ -101,8 +101,8 @@ public class CalendarSpaceActivityPublisher extends CalendarEventListener {
       IdentityManager identityM = (IdentityManager) PortalContainer.getInstance().getComponentInstanceOfType(IdentityManager.class);
       ActivityManager activityM = (ActivityManager) PortalContainer.getInstance().getComponentInstanceOfType(ActivityManager.class);
       SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
-      String spaceId = calendarId.split(CalendarDataInitialize.SPACE_CALENDAR_ID_SUFFIX)[0];
-      Space space = spaceService.getSpaceById(spaceId);
+      String spacePrettyName = calendarId.split(CalendarDataInitialize.SPACE_CALENDAR_ID_SUFFIX)[0];
+      Space space = spaceService.getSpaceByPrettyName(spacePrettyName);
       if (space != null) {
         String userId = ConversationState.getCurrent().getIdentity().getUserId();
         Identity spaceIdentity = identityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
