@@ -19,17 +19,11 @@ package org.exoplatform.social.plugin.doc;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.jcr.Node;
 
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.ecm.webui.selector.UISelectable;
-import org.exoplatform.ecm.webui.tree.selectone.UIOneNodePathSelector;
-import org.exoplatform.ecm.webui.utils.Utils;
-import org.exoplatform.portal.webui.util.SessionProviderFactory;
-import org.exoplatform.services.jcr.ext.hierarchy.NodeHierarchyCreator;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.wcm.utils.WCMCoreUtils;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -85,7 +79,6 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
           "${" +UIDocActivity.DOCNAME +"}</a>";
 
   private String documentRefLink;
-  private String rootpath;
   private String documentPath;
   private String documentName;
   private boolean isDocumentReady;
@@ -130,39 +123,14 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
   @Override
   protected void onActivate(Event<UIActivityComposer> event) {
     isDocumentReady = false;
-    //SOC-1912
     setCurrentUser(event.getRequestContext().getRemoteUser());
-    rootpath = getPathForCurrentUser(getCurrentUser());
-    final UIDocActivityComposer docActivityComposer = (UIDocActivityComposer) event.getSource();
-    showDocumentPopup(docActivityComposer);
   }
   
-  /**
-   * Because the new path for user change from ECMS,
-   *  this method fix path for User's NodePath.
-   *  
-   * @param remoteUser
-   * @return NodePath
-   * @since 1.2.1
-   */
-  private String getPathForCurrentUser(String remoteUser) {
-    try {
-      NodeHierarchyCreator nodeHierarchyCreator = WCMCoreUtils.getService(NodeHierarchyCreator.class);
-      Node userNode = nodeHierarchyCreator.getUserNode(WCMCoreUtils.getUserSessionProvider(), remoteUser);
-      return userNode.getPath();
-                                
-    } catch (Exception e) {
-      LOG.error(e);
-      return "";
-    }
-    
-  }
-
   private UIPopupWindow showDocumentPopup(UIDocActivityComposer docActivityComposer) {
     UIComposer uiComposer = docActivityComposer.getAncestorOfType(UIComposer.class);
     UIContainer optionContainer = uiComposer.getOptionContainer();
-
     UIPopupWindow uiPopup = optionContainer.getChild(UIPopupWindow.class);
+    
     if(uiPopup == null){
       try {
         uiPopup = optionContainer.addChild(UIPopupWindow.class, null, POPUP_COMPOSER);
@@ -172,10 +140,8 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
     }
 
     final UIComponent child = uiPopup.getUIComponent();
-    if(child != null && child instanceof UIOneNodePathSelector){
+    if(child != null && child instanceof UIDocActivitySelector){
       try {
-        UIOneNodePathSelector uiOneNodePathSelector = (UIOneNodePathSelector) child;
-        uiOneNodePathSelector.init(SessionProviderFactory.createSessionProvider());
         uiPopup.setShow(true);
         uiPopup.setResizable(true);
       } catch (Exception e) {
@@ -184,23 +150,17 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
     }
     else {
       try {
-        uiPopup.setWindowSize(600, 600);
-
-        UIOneNodePathSelector uiOneNodePathSelector = uiPopup.createUIComponent(UIOneNodePathSelector.class, null,
-                                                                                "UIOneNodePathSelector");
-        uiOneNodePathSelector.setIsDisable(WORKSPACE, true);
-        uiOneNodePathSelector.setIsShowSystem(false);
-        uiOneNodePathSelector.setAcceptedNodeTypesInPathPanel(new String[] {Utils.NT_FILE});
-        uiOneNodePathSelector.setRootNodeLocation(REPOSITORY, WORKSPACE, rootpath);
-        uiOneNodePathSelector.init(SessionProviderFactory.createSessionProvider());
-        uiPopup.setUIComponent(uiOneNodePathSelector);
-        uiOneNodePathSelector.setSourceComponent(this, null);
+        UIDocActivitySelector selector = uiPopup.createUIComponent(UIDocActivitySelector.class, null, null) ;
+        uiPopup.setUIComponent(selector);
         uiPopup.setShow(true);
         uiPopup.setResizable(true);
       } catch (Exception e) {
         LOG.error(e);
       }
     }
+    
+    uiPopup.setWindowSize(500, 0);
+    
     return uiPopup;
   }
 
@@ -217,7 +177,7 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
   public void onPostActivity(PostContext postContext, UIComponent source,
                              WebuiRequestContext requestContext, String postedMessage) throws Exception {
     if(!isDocumentReady){
-      requestContext.getUIApplication().addMessage(new ApplicationMessage("You have to choose document first!!!",
+      requestContext.getUIApplication().addMessage(new ApplicationMessage("UIComposer.msg.error.Must_select_document",
                                                                            null,
                                                                            ApplicationMessage.INFO));
     } else {
@@ -229,12 +189,7 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
       activityParams.put(UIDocActivity.WORKSPACE, WORKSPACE);
       activityParams.put(UIDocActivity.MESSAGE, postedMessage);
 
-      UIApplication uiApplication = requestContext.getUIApplication();
-      if (activityParams.size() == 0) {
-        uiApplication.addMessage(new ApplicationMessage("UIComposer.msg.error.Empty_Message",
-                                                      null,
-                                                      ApplicationMessage.WARNING));
-      } else if(postContext == UIComposer.PostContext.SPACE){
+      if(postContext == UIComposer.PostContext.SPACE){
         postActivityToSpace(source, requestContext, activityParams);
       } else if (postContext == UIComposer.PostContext.USER){
         postActivityToUser(source, requestContext, activityParams);
@@ -318,22 +273,19 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
                                             .append("/").append(restService)
                                             .append("/").append(REPOSITORY)
                                             .append("/").append(WORKSPACE)
-                                            .append(rootpath)
                                             .append("/").append(rawPath).toString();
   }
 
   public String buildDocumentPath(String rawPath){
-    return getPathForCurrentUser(getCurrentUser()) + "/" + rawPath;
+    return "/" + rawPath;
   }
 
   public static class SelectDocumentActionListener  extends EventListener<UIDocActivityComposer> {
     @Override
     public void execute(Event<UIDocActivityComposer> event) throws Exception {
-      final UIDocActivityComposer docActivityComposer = event.getSource();
-      docActivityComposer.rootpath = docActivityComposer.getPathForCurrentUser(event.getRequestContext()
-              .getRemoteUser());
+      UIDocActivityComposer docActivityComposer = event.getSource();
       UIPopupWindow uiPopup = docActivityComposer.showDocumentPopup(docActivityComposer);
-      event.getRequestContext().addUIComponentToUpdateByAjax(uiPopup);
+      event.getRequestContext().addUIComponentToUpdateByAjax(uiPopup.getParent());
     }
   }
   

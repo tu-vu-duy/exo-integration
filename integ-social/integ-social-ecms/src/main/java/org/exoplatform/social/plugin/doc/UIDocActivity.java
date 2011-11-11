@@ -18,8 +18,6 @@ package org.exoplatform.social.plugin.doc;
 
 import javax.jcr.Node;
 
-import org.exoplatform.services.log.ExoLogger;
-import org.exoplatform.services.log.Log;
 import org.exoplatform.social.webui.activity.BaseUIActivity;
 import org.exoplatform.social.webui.activity.UIActivitiesContainer;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
@@ -53,7 +51,6 @@ import org.exoplatform.webui.event.EventListener;
    }
  )
 public class UIDocActivity extends BaseUIActivity {
-  private static final Log LOG = ExoLogger.getLogger(UIDocActivity.class);
   
   public static final String ACTIVITY_TYPE = "DOC_ACTIVITY";
   public static final String DOCLINK = "DOCLINK";
