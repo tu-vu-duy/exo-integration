@@ -24,6 +24,7 @@ import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.core.storage.SpaceStorageException;
 import org.exoplatform.wiki.mow.api.Page;
+import org.exoplatform.wiki.mow.core.api.wiki.PageImpl;
 import org.exoplatform.wiki.rendering.RenderingService;
 import org.exoplatform.wiki.service.listener.PageWikiListener;
 import org.xwiki.rendering.syntax.Syntax;
@@ -84,7 +85,9 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
         .getComponentInstanceOfType(RenderingService.class);
       excerpt = renderingService.render(page.getContent().getText(), page.getSyntax(), Syntax.PLAIN_1_0.toIdString(), false);
     } else {
-      templateParams.put(VIEW_CHANGE_URL_KEY, page.getURL() + VIEW_CHANGE_ANCHOR);
+      
+      String verName = ((PageImpl) page).getVersionableMixin().getBaseVersion().getName();
+      templateParams.put(VIEW_CHANGE_URL_KEY, page.getURL() + "?action=CompareRevision&verName=" + verName);
       excerpt = page.getComment();
     }
     excerpt = (excerpt.length() > EXCERPT_LENGTH) ? excerpt.substring(0, EXCERPT_LENGTH) + "..." : excerpt;
