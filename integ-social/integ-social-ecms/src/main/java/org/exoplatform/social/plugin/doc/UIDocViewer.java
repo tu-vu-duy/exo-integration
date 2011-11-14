@@ -32,12 +32,17 @@ import org.exoplatform.services.cms.impl.DMSConfiguration;
 import org.exoplatform.services.cms.templates.TemplateService;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.social.webui.profile.UIProfileUserSearch;
 import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
+import org.exoplatform.webui.config.annotation.EventConfig;
 import org.exoplatform.webui.core.UIComponent;
 import org.exoplatform.webui.core.lifecycle.Lifecycle;
+import org.exoplatform.webui.event.Event;
+import org.exoplatform.webui.event.EventListener;
 import org.exoplatform.webui.ext.UIExtension;
 import org.exoplatform.webui.ext.UIExtensionManager;
+
 
 /**
  * UIDocViewer <p></p>
@@ -47,7 +52,10 @@ import org.exoplatform.webui.ext.UIExtensionManager;
  */
 
 @ComponentConfig(
-  lifecycle = Lifecycle.class
+  lifecycle = Lifecycle.class,
+  events = {
+    @EventConfig(listeners = UIDocViewer.DownloadActionListener.class)
+  }
 )
 public class UIDocViewer extends UIBaseNodePresentation {
 
@@ -153,5 +161,13 @@ public class UIDocViewer extends UIBaseNodePresentation {
 
   public String getRepositoryName() {
     return UIDocActivityComposer.REPOSITORY;
+  }
+  
+  static  public class DownloadActionListener extends EventListener<UIDocViewer> {
+    public void execute(Event<UIDocViewer> event) throws Exception {
+      UIDocViewer uiComp = event.getSource() ;
+      String downloadLink = uiComp.getDownloadLink(org.exoplatform.wcm.webui.Utils.getFileLangNode(uiComp.getNode()));
+      event.getRequestContext().getJavascriptManager().addJavascript("ajaxRedirect('" + downloadLink + "');");
+    }
   }
 }
