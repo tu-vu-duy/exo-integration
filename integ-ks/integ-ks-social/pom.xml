@@ -75,6 +75,13 @@
       <scope>provided</scope>
     </dependency>
    
+   <dependency>
+      <groupId>org.exoplatform.ks</groupId>
+      <artifactId>exo.ks.component.common</artifactId>
+      <version>${org.exoplatform.ks.version}</version>
+      <scope>provided</scope>
+    </dependency>
+   
    	<dependency>
       <groupId>org.exoplatform.ks</groupId>
       <artifactId>exo.ks.eXoApplication.common</artifactId>

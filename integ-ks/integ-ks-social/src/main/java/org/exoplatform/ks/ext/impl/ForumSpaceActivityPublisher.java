@@ -29,6 +29,8 @@ import org.exoplatform.forum.service.Post;
 import org.exoplatform.forum.service.Topic;
 import org.exoplatform.forum.service.Utils;
 import org.exoplatform.ks.bbcode.core.ExtendedBBCodeProvider;
+import org.exoplatform.ks.common.CommonUtils;
+import org.exoplatform.ks.common.TransformHTML;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.security.ConversationState;
@@ -97,9 +99,12 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
   
   private ExoSocialActivity activity(Identity author, String title, String body, String forumId, String categoryId, String topicId, String type, Map<String, String> templateParams) throws Exception {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
-    body = ForumTransformHTML.getTitleInHTMLCode(body, new ArrayList<String>((new ExtendedBBCodeProvider()).getSupportedBBCodes()));
+    body = TransformHTML.getTitleInHTMLCode(body, new ArrayList<String>((new ExtendedBBCodeProvider()).getSupportedBBCodes()));
+    body = CommonUtils.decodeSpecialCharToHTMLnumber(body);
     activity.setUserId(author.getId());
-    activity.setTitle(ForumTransformHTML.getTitleInHTMLCode(title));
+    title = TransformHTML.getTitleInHTMLCode(title, new ArrayList<String>());
+    title = CommonUtils.decodeSpecialCharToHTMLnumber(title);
+    activity.setTitle(title);
     activity.setBody(body);
     activity.setType(FORUM_APP_ID);
     templateParams.put(FORUM_ID_KEY, forumId);
@@ -111,15 +116,17 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
   }
 
   private Map<String, String> updateTemplateParams(Map<String, String> templateParams, String id, String link, String owner, String name, ACTIVITYTYPE type) throws Exception {
+    name = TransformHTML.getTitleInHTMLCode(name, new ArrayList<String>());
+    name = CommonUtils.decodeSpecialCharToHTMLnumber(name);
     if (type.name().indexOf(POST_TYPE) > 0) {
       templateParams.put(POST_ID_KEY, id);
       templateParams.put(POST_LINK_KEY, link);
-      templateParams.put(POST_NAME_KEY, ForumTransformHTML.getTitleInHTMLCode(name));
+      templateParams.put(POST_NAME_KEY, name);
       templateParams.put(POST_OWNER_KEY, owner);
     } else {
       templateParams.put(TOPIC_ID_KEY, id);
       templateParams.put(TOPIC_LINK_KEY, link);
-      templateParams.put(TOPIC_NAME_KEY, ForumTransformHTML.getTitleInHTMLCode(name));
+      templateParams.put(TOPIC_NAME_KEY, name);
       templateParams.put(TOPIC_OWNER_KEY, owner);
     }
     return templateParams;
