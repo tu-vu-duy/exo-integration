@@ -38,6 +38,7 @@ import org.exoplatform.webui.event.EventListener;
    lifecycle = UIFormLifecycle.class,
    template = "classpath:groovy/social/plugin/doc/UIDocActivity.gtmpl",
    events = {
+     @EventConfig(listeners = UIDocActivity.DownloadDocumentActionListener.class),
      @EventConfig(listeners = UIDocActivity.ViewDocumentActionListener.class),
      @EventConfig(listeners = BaseUIActivity.ToggleDisplayLikesActionListener.class),
      @EventConfig(listeners = BaseUIActivity.ToggleDisplayCommentFormActionListener.class),
@@ -95,6 +96,15 @@ public class UIDocActivity extends BaseUIActivity {
       popupWindow.setResizable(true);
 
       event.getRequestContext().addUIComponentToUpdateByAjax(activitiesContainer);
+    }
+  }
+  
+  public static class DownloadDocumentActionListener extends EventListener<UIDocActivity> {
+    @Override
+    public void execute(Event<UIDocActivity> event) throws Exception {
+      UIDocActivity uiComp = event.getSource() ;
+      String downloadLink = org.exoplatform.wcm.webui.Utils.getDownloadLink(uiComp.getDocNode());
+      event.getRequestContext().getJavascriptManager().addJavascript("ajaxRedirect('" + downloadLink + "');");
     }
   }
 }

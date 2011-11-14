@@ -140,7 +140,6 @@
 
   def dMessage = uicomponent.message;
   def dName = uicomponent.docName;
-  def dLink = uicomponent.docLink;
 
   def downloadDocumentLabel = _ctx.appRes("UIComposerDocumentExtension.label.Download");
   def viewDocumentLabel = _ctx.appRes("UIComposerDocumentExtension.label.View_Document");
@@ -208,7 +207,7 @@
         </a> |
       <% }%>
      <% }%>
-        <a class="ColorLink" target="_blank" href="$dLink">$downloadDocumentLabel</a> |
+        <a class="ColorLink" href="<%= uicomponent.event("DownloadDocument", uicomponent.getId(), "")%>">$downloadDocumentLabel</a> |
         <a class="ColorLink" href="<%= uicomponent.event("ViewDocument", uicomponent.getId(), "")%>">$viewDocumentLabel</a>
       </div>
       
