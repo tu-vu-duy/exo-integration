@@ -8,13 +8,13 @@
   </parent>
   <groupId>org.exoplatform.integration</groupId>
   <artifactId>integ</artifactId>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.0.3</version>
   <packaging>pom</packaging>
   <name>eXo Integration</name>
   <scm>
-    <connection>scm:svn:http://svn.exoplatform.org/projects/integration/trunk</connection>
-    <developerConnection>scm:svn:http://svn.exoplatform.org/projects/integration/trunk</developerConnection>
-    <url>http://fisheye.exoplatform.org/browse/integration/trunk</url>
+    <connection>scm:svn:http://svn.exoplatform.org/projects/integration/tags/1.0.3</connection>
+    <developerConnection>scm:svn:http://svn.exoplatform.org/projects/integration/tags/1.0.3</developerConnection>
+    <url>http://fisheye.exoplatform.org/browse/integration/tags/1.0.3</url>
   </scm>
   <properties>
     <!-- ********************* -->
