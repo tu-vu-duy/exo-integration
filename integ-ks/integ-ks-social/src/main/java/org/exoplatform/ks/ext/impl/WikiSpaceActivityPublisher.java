@@ -1,6 +1,5 @@
 package org.exoplatform.ks.ext.impl;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +23,7 @@ import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.core.storage.SpaceStorageException;
 import org.exoplatform.wiki.mow.api.Page;
+import org.exoplatform.wiki.mow.api.WikiNodeType;
 import org.exoplatform.wiki.mow.core.api.wiki.PageImpl;
 import org.exoplatform.wiki.rendering.RenderingService;
 import org.exoplatform.wiki.service.listener.PageWikiListener;
@@ -77,7 +77,7 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
     templateParams.put(PAGE_OWNER_KEY, wikiOwner);
     templateParams.put(PAGE_TYPE_KEY, wikiType);
     templateParams.put(PAGE_TITLE_KEY, page.getTitle());    
-    String pageURL = (page.getURL() == null) ? (spaceUrl != null ? spaceUrl : "")  + "/" + WIKI_PAGE_NAME : page.getURL();
+    String pageURL = (page.getURL() == null) ? (spaceUrl != null ? (spaceUrl + "/" + WIKI_PAGE_NAME) : "") : page.getURL();
     templateParams.put(URL_KEY, pageURL);
     
     String excerpt = StringUtils.EMPTY;
@@ -154,6 +154,10 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
 
   @Override
   public void postAddPage(String wikiType, String wikiOwner, String pageId, Page page) throws Exception {
+    if (WikiNodeType.Definition.WIKI_HOME_NAME.equals(pageId)) {
+      // catch the case of the Wiki Home added as it's created by the system, not by users.
+      return;
+    }
     saveActivity(wikiType, wikiOwner, pageId, page, ADD_PAGE_TYPE);
   }
 
