@@ -16,8 +16,12 @@
  */
 package org.exoplatform.social.plugin.doc;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.jcr.Node;
 
+import org.apache.commons.lang.StringUtils;
 import org.exoplatform.social.webui.activity.BaseUIActivity;
 import org.exoplatform.social.webui.activity.UIActivitiesContainer;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
@@ -53,6 +57,8 @@ import org.exoplatform.webui.event.EventListener;
  )
 public class UIDocActivity extends BaseUIActivity {
   
+  private static final String IMAGE_PATTERN = "([^\\s]+(\\.(?i)(jpeg|jpg|png|gif|bmp))$)";
+  
   public static final String ACTIVITY_TYPE = "DOC_ACTIVITY";
   public static final String DOCLINK = "DOCLINK";
   public static final String MESSAGE = "MESSAGE";
@@ -78,6 +84,12 @@ public class UIDocActivity extends BaseUIActivity {
     return docNode;
   }
 
+  protected boolean isImageFile(final String fileName) {
+    Pattern pattern = Pattern.compile(IMAGE_PATTERN);
+    Matcher matcher = pattern.matcher(StringUtils.deleteWhitespace(fileName));
+    return matcher.matches();
+  }
+  
   public static class ViewDocumentActionListener extends EventListener<UIDocActivity> {
     @Override
     public void execute(Event<UIDocActivity> event) throws Exception {
@@ -85,6 +97,10 @@ public class UIDocActivity extends BaseUIActivity {
       final UIActivitiesContainer activitiesContainer = docActivity.getParent();
       final UIPopupWindow popupWindow = activitiesContainer.getPopupWindow();
 
+      if (docActivity.getChild(UIDocViewer.class) != null) {
+        docActivity.removeChild(UIDocViewer.class);
+      }
+      
       UIDocViewer docViewer = popupWindow.createUIComponent(UIDocViewer.class, null, "DocViewer");
       final Node docNode = docActivity.getDocNode();
       docViewer.setOriginalNode(docNode);

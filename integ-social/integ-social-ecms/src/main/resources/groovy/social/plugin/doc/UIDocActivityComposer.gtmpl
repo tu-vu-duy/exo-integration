@@ -20,7 +20,7 @@
 
   import org.exoplatform.webui.form.UIFormStringInput;
   
-  def selectDocumentLabel = _ctx.appRes("UIComposerDocumentExtension.label.Select_Document");
+  def selectFileLabel = _ctx.appRes("UIComposerDocumentExtension.label.Select_File");
 %>
 <div id="<%=uicomponent.id%>">
   <%
@@ -40,7 +40,7 @@
       %>
         <span class="TopInputLink"></span>
         <div class="InputDoc">
-        	<a class="BrowseFile" href="<%= uicomponent.event("SelectDocument")%>">Browse files</a>
+        	<a class="BrowseFile" href="<%= uicomponent.event("SelectDocument")%>">$selectFileLabel</a>
         </div>
         <script type="text/javascript">
           try{setShareButtonDisable(true);}catch(e){}

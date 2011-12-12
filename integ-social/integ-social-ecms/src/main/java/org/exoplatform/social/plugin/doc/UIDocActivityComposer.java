@@ -177,7 +177,7 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
   public void onPostActivity(PostContext postContext, UIComponent source,
                              WebuiRequestContext requestContext, String postedMessage) throws Exception {
     if(!isDocumentReady){
-      requestContext.getUIApplication().addMessage(new ApplicationMessage("UIComposer.msg.error.Must_select_document",
+      requestContext.getUIApplication().addMessage(new ApplicationMessage("UIComposer.msg.error.Must_select_file",
                                                                            null,
                                                                            ApplicationMessage.INFO));
     } else {

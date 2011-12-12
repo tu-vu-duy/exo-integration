@@ -141,8 +141,8 @@
   def dMessage = uicomponent.message;
   def dName = uicomponent.docName;
 
-  def downloadDocumentLabel = _ctx.appRes("UIComposerDocumentExtension.label.Download");
-  def viewDocumentLabel = _ctx.appRes("UIComposerDocumentExtension.label.View_Document");
+  def downloadFileLabel = _ctx.appRes("UIComposerDocumentExtension.label.Download");
+  def viewFileLabel = _ctx.appRes("UIComposerDocumentExtension.label.View_File");
 %>
 
 <div class="UIActivity">
@@ -168,6 +168,7 @@
         <span onclick="<%= uicomponent.event("DeleteActivity", uicomponent.getId(), ""); %>" class="CloseContentBoxNormal" id="DeleteActivityButton${activity.id}"></span>
       <%}%>
       </h5>
+    
 		 <%
           if (!dMessage.equals(null) && !dMessage.equals("")){
             %>
@@ -175,8 +176,19 @@
             <%
           }
         %>
-	  <div class="BoxGray">       
+        
+	    <div class="BoxGray">
+	    <% 
+		    if(uicomponent.isImageFile(dName)) {
+		  %>      
+		    <img src="$uicomponent.docLink" style="width: 80px;" />
+		  <%
+		    } else {
+		  %>
         $dName
+      <%
+		    }
+		  %>
       </div>
       <div class="DocActivityIcon">
         <% if (uicomponent.isUserActivity() && uicomponent.isSpaceStreamOwner() && !uicomponent.isUISpaceActivitiesDisplay()) {%>
@@ -207,8 +219,8 @@
         </a> |
       <% }%>
      <% }%>
-        <a class="ColorLink" href="<%= uicomponent.event("DownloadDocument", uicomponent.getId(), "")%>">$downloadDocumentLabel</a> |
-        <a class="ColorLink" href="<%= uicomponent.event("ViewDocument", uicomponent.getId(), "")%>">$viewDocumentLabel</a>
+        <a class="ColorLink" href="<%= uicomponent.event("DownloadDocument", uicomponent.getId(), "")%>">$downloadFileLabel</a> |
+        <a class="ColorLink" href="<%= uicomponent.event("ViewDocument", uicomponent.getId(), "")%>">$viewFileLabel</a>
       </div>
       
       <% if (identityLikesNum > 0 || uicomponent.isLiked()) {%>
