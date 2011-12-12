@@ -22,6 +22,8 @@ import java.util.Map;
 import org.exoplatform.calendar.service.CalendarEvent;
 import org.exoplatform.calendar.service.impl.CalendarEventListener;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.portal.application.PortalRequestContext;
+import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.security.ConversationState;
@@ -71,6 +73,42 @@ public class CalendarSpaceActivityPublisher extends CalendarEventListener {
   public static final String EVENT_STARTTIME_KEY   = "EventStartTime".intern();
 
   public static final String EVENT_ENDTIME_KEY     = "EventEndTime".intern();
+  
+  public static final String EVENT_LINK_KEY        = "EventLink";
+  
+  public static final String INVITATION_DETAIL     = "/invitation/detail/";
+  
+  /**
+   * Make url for the event of the calendar application. 
+   * Format of the url is: 
+   * <ul>
+   *    <li>/[portal]/[space]/[calendar]/[username]/invitation/detail/[event id]/[calendar type]</li>
+   * </ul>
+   * The format is used to utilize the invitation email feature implemented before.
+   * <br>
+   * <strong>[NOTE]</strong>
+   * Keep in mind that this function calls {@link PortalRequestContext} which is in webui layer while this function is usually invoked in the service layer. Need to be improved in the future for ensuring the system design convention.
+   * 
+   * @param event have to be not null
+   * @return empty string if the process is failed.
+   */
+  private String makeEventLink(CalendarEvent event) {
+    StringBuffer sb = new StringBuffer("");
+    try {
+      PortalRequestContext requestContext = Util.getPortalRequestContext();
+      sb.append(requestContext.getPortalURI())
+        .append(requestContext.getNodePath())
+        .append(INVITATION_DETAIL)
+        .append(ConversationState.getCurrent().getIdentity().getUserId())
+        .append("/").append(event.getId())
+        .append("/").append(event.getCalType());
+    } catch (Exception e) {
+      if (LOG.isWarnEnabled()) 
+        LOG.warn(String.format("Could not create url for the event %s", event.getId()), e);
+      return "";
+    }
+    return sb.toString();
+  }
 
   private Map<String, String> makeActivityParams(CalendarEvent event, String calendarId, String eventType) {
     Map<String, String> params = new HashMap<String, String>();
@@ -82,6 +120,7 @@ public class CalendarSpaceActivityPublisher extends CalendarEventListener {
     params.put(EVENT_DESCRIPTION_KEY, event.getDescription() != null ? event.getDescription() : "");
     params.put(EVENT_STARTTIME_KEY, String.valueOf(event.getFromDateTime().getTime()));
     params.put(EVENT_ENDTIME_KEY, String.valueOf(event.getToDateTime().getTime()));
+    params.put(EVENT_LINK_KEY, makeEventLink(event));
     return params;
   }
 

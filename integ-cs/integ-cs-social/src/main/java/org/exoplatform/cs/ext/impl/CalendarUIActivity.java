@@ -124,6 +124,12 @@ public class CalendarUIActivity extends BaseUIActivity {
     return getActivityParamValue(CalendarSpaceActivityPublisher.EVENT_SUMMARY_KEY);
   }
   
+  /** used by the template **/
+  private String getEventLink() {
+    String value = null;
+    return (value = getActivityParamValue(CalendarSpaceActivityPublisher.EVENT_LINK_KEY)) != null ? value : "";
+  }
+  
   /**
    * @return the taskStatus
    */

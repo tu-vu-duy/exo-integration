@@ -162,7 +162,7 @@
       <%
         def ownerTag = '<a class="Text" title="' + ownerName + '" href="' + ownerUri + '">' + ownerName + '</a>';
         def title = uicomponent.getTitleTemplate();
-        title = title.replace("{0}", ownerTag).replace("{1}", "<strong>" + uicomponent.getSummary() + "</strong>");
+        title = title.replace("{0}", ownerTag).replace("{1}", "<a href='" + uicomponent.getEventLink() +"' title='" + uicomponent.getSummary() + "'>" + uicomponent.getSummary() + "</a>");
         print title;
       %>
       <% if (activityDeletable) {%>
