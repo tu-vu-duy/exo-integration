@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.forum.service.Category;
 import org.exoplatform.forum.service.Forum;
@@ -29,7 +30,6 @@ import org.exoplatform.forum.service.Post;
 import org.exoplatform.forum.service.Topic;
 import org.exoplatform.forum.service.Utils;
 import org.exoplatform.ks.bbcode.core.ExtendedBBCodeProvider;
-import org.exoplatform.ks.common.CommonUtils;
 import org.exoplatform.ks.common.TransformHTML;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -99,11 +99,9 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
   
   private ExoSocialActivity activity(Identity author, String title, String body, String forumId, String categoryId, String topicId, String type, Map<String, String> templateParams) throws Exception {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
-    body = TransformHTML.getTitleInHTMLCode(body, new ArrayList<String>((new ExtendedBBCodeProvider()).getSupportedBBCodes()));
-    body = CommonUtils.decodeSpecialCharToHTMLnumber(body);
+    body = StringEscapeUtils.unescapeHtml(TransformHTML.getTitleInHTMLCode(body, new ArrayList<String>((new ExtendedBBCodeProvider()).getSupportedBBCodes())));
     activity.setUserId(author.getId());
-    title = TransformHTML.getTitleInHTMLCode(title, new ArrayList<String>());
-    title = CommonUtils.decodeSpecialCharToHTMLnumber(title);
+    title = StringEscapeUtils.unescapeHtml(title);
     activity.setTitle(title);
     activity.setBody(body);
     activity.setType(FORUM_APP_ID);
@@ -116,8 +114,6 @@ public class ForumSpaceActivityPublisher extends ForumEventListener {
   }
 
   private Map<String, String> updateTemplateParams(Map<String, String> templateParams, String id, String link, String owner, String name, ACTIVITYTYPE type) throws Exception {
-    name = TransformHTML.getTitleInHTMLCode(name, new ArrayList<String>());
-    name = CommonUtils.decodeSpecialCharToHTMLnumber(name);
     if (type.name().indexOf(POST_TYPE) > 0) {
       templateParams.put(POST_ID_KEY, id);
       templateParams.put(POST_LINK_KEY, link);
