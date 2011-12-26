@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.exoplatform.contact.service.Contact;
+import org.exoplatform.contact.service.Utils;
 import org.exoplatform.contact.service.impl.ContactEventListener;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.log.ExoLogger;
@@ -71,7 +72,7 @@ public class ContactSpaceActivityPublisher extends ContactEventListener {
     try {
       Class.forName("org.exoplatform.social.core.manager.IdentityManager");
       String addrBookId = contact.getAddressBook()[0];
-      if (addrBookId == null || addrBookId.indexOf(ContactDataInitialize.ADDRESSBOOK_ID_PREFIX) < 0) {
+      if (addrBookId == null || addrBookId.indexOf(Utils.ADDRESSBOOK_ID_PREFIX) < 0) {
         return;
       }
       ExoSocialActivity activity = new ExoSocialActivityImpl();
@@ -82,9 +83,9 @@ public class ContactSpaceActivityPublisher extends ContactEventListener {
 
       IdentityManager indentityM = (IdentityManager) PortalContainer.getInstance().getComponentInstanceOfType(IdentityManager.class);
       ActivityManager activityM = (ActivityManager) PortalContainer.getInstance().getComponentInstanceOfType(ActivityManager.class);
-      String prettyNameOfSpace = addrBookId.split(ContactDataInitialize.ADDRESSBOOK_ID_PREFIX)[1];
+      String prettyNameOfSpace = addrBookId.split(Utils.ADDRESSBOOK_ID_PREFIX)[1];
       Identity spaceIdentity = indentityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, prettyNameOfSpace, false);
-      activityM.saveActivity(spaceIdentity, activity);
+      activityM.saveActivityNoReturn(spaceIdentity, activity);
     } catch (Exception e) {
       LOG.error("Can not record Activity for space when contact added " + e.getMessage());
     }
@@ -96,7 +97,7 @@ public class ContactSpaceActivityPublisher extends ContactEventListener {
     try {
       Class.forName("org.exoplatform.social.core.manager.IdentityManager");
       String addrBookId = contact.getAddressBook()[0];
-      if (addrBookId == null || addrBookId.indexOf(ContactDataInitialize.ADDRESSBOOK_ID_PREFIX) < 0) {
+      if (addrBookId == null || addrBookId.indexOf(Utils.ADDRESSBOOK_ID_PREFIX) < 0) {
         return;
       }
       ExoSocialActivity activity = new ExoSocialActivityImpl();
@@ -107,9 +108,9 @@ public class ContactSpaceActivityPublisher extends ContactEventListener {
 
       IdentityManager indentityM = (IdentityManager) PortalContainer.getInstance().getComponentInstanceOfType(IdentityManager.class);
       ActivityManager activityM = (ActivityManager) PortalContainer.getInstance().getComponentInstanceOfType(ActivityManager.class);
-      String prettyNameOfSpace = addrBookId.split(ContactDataInitialize.ADDRESSBOOK_ID_PREFIX)[1];
+      String prettyNameOfSpace = addrBookId.split(Utils.ADDRESSBOOK_ID_PREFIX)[1];
       Identity spaceIdentity = indentityM.getOrCreateIdentity(SpaceIdentityProvider.NAME, prettyNameOfSpace, false);
-      activityM.saveActivity(spaceIdentity, activity);
+      activityM.saveActivityNoReturn(spaceIdentity, activity);
     } catch (Exception e) {
       LOG.error("Can not record Activity for space when contact updated " + e.getMessage());
     }

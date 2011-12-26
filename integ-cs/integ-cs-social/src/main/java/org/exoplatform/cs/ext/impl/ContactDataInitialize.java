@@ -19,8 +19,10 @@ package org.exoplatform.cs.ext.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.contact.service.AddressBook;
 import org.exoplatform.contact.service.ContactService;
+import org.exoplatform.contact.service.Utils;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.container.component.ComponentRequestLifecycle;
@@ -44,8 +46,6 @@ import org.exoplatform.social.core.space.spi.SpaceLifeCycleEvent;
 public class ContactDataInitialize extends SpaceListenerPlugin {
 
   private static final Log   log                   = ExoLogger.getLogger(ContactDataInitialize.class);
-
-  public static final String ADDRESSBOOK_ID_PREFIX = "ContactGroupInSpace".intern();
 
   private final InitParams   params;
 
@@ -84,12 +84,15 @@ public class ContactDataInitialize extends SpaceListenerPlugin {
       ((ComponentRequestLifecycle) oService).startRequest(manager);
       /* --- end --- */
       List<String> receivedUsers = new ArrayList<String>();
-      for (User u : oService.getUserHandler().findUsersByGroup(space.getGroupId()).getAll()) {
-        Membership m = oService.getMembershipHandler().findMembershipByUserGroupAndType(u.getUserName(), space.getGroupId(), SpaceServiceImpl.MANAGER);
+      ListAccess<User> listAccess = oService.getUserHandler().findUsersByGroupId(space.getGroupId());
+      
+      User[] userArray = (User[]) listAccess.load(0, listAccess.getSize());
+      for (int i = 0; i < listAccess.getSize(); i++) {
+        Membership m = oService.getMembershipHandler().findMembershipByUserGroupAndType(userArray[i].getUserName(), space.getGroupId(), SpaceServiceImpl.MANAGER);
         if (m != null && firstMem == null) {
-          firstMem = u.getUserName();
+          firstMem = userArray[i].getUserName();
         } else {
-          receivedUsers.add(u.getUserName());
+          receivedUsers.add(userArray[i].getUserName());
         }
       }
       /* --- stop organization service --- */
@@ -97,7 +100,7 @@ public class ContactDataInitialize extends SpaceListenerPlugin {
       /* --- end --- */
 
       ContactService contactService = (ContactService) PortalContainer.getComponent(ContactService.class);
-      String addrBookId = ADDRESSBOOK_ID_PREFIX + space.getPrettyName();
+      String addrBookId = Utils.ADDRESSBOOK_ID_PREFIX + space.getPrettyName();
       AddressBook book = null;
       try {
         book = contactService.getPersonalAddressBook(firstMem, addrBookId);
