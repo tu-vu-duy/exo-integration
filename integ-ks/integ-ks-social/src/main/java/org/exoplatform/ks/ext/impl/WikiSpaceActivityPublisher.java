@@ -168,6 +168,8 @@ public class WikiSpaceActivityPublisher extends PageWikiListener {
 
   @Override
   public void postUpdatePage(String wikiType, String wikiOwner, String pageId, Page page) throws Exception {
-    saveActivity(wikiType, wikiOwner, pageId, page, UPDATE_PAGE_TYPE);
+    if(page != null && !((PageImpl)page).isMinorEdit()) {
+      saveActivity(wikiType, wikiOwner, pageId, page, UPDATE_PAGE_TYPE);
+    }
   }
 }
