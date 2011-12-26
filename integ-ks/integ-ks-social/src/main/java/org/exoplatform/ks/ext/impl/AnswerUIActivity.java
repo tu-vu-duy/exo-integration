@@ -12,6 +12,7 @@ import org.exoplatform.forum.service.ForumService;
 import org.exoplatform.forum.service.MessageBuilder;
 import org.exoplatform.forum.service.Post;
 import org.exoplatform.forum.service.Topic;
+import org.exoplatform.ks.common.CommonUtils;
 import org.exoplatform.ks.common.webui.WebUIUtils;
 import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.webui.util.Util;
@@ -57,18 +58,21 @@ public class AnswerUIActivity extends BaseKSActivity {
     // try to access "comments" field of BaseUIActivity  
     if (isQuestionActivity()) {
       List<ExoSocialActivity> comments = getAllComments();
-      FAQService faqService = (FAQService) ExoContainerContext.getCurrentContainer()
-                                                              .getComponentInstanceOfType(FAQService.class);
-      try {
-        Comment[] commentObjs = faqService.getComments(getActivityParamValue(AnswersSpaceActivityPublisher.QUESTION_ID_KEY));
-        for (Comment comment : commentObjs) {
-          ExoSocialActivity act = toActivity(comment);
-          if (act != null)
-            comments.add(act);
-        }
-      } catch (Exception e) {
-        if (log.isWarnEnabled()) {
-          log.warn(String.format("Failed to get comments of question: %s", getActivityParamValue(AnswersSpaceActivityPublisher.QUESTION_ID_KEY)), e);
+      String questionId =  getActivityParamValue(AnswersSpaceActivityPublisher.QUESTION_ID_KEY);
+      if(!CommonUtils.isEmpty(questionId)) {
+        try {
+          FAQService faqService = (FAQService) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(FAQService.class);
+          Comment[] commentObjs = faqService.getComments(questionId);
+          for (Comment comment : commentObjs) {
+            ExoSocialActivity act = toActivity(comment);
+            if (act != null){
+              comments.add(act);
+            }
+          }
+        } catch (Exception e) {
+          if (log.isWarnEnabled()) {
+            log.warn(String.format("Failed to get comments of question: %s", getActivityParamValue(AnswersSpaceActivityPublisher.QUESTION_ID_KEY)), e);
+          }
         }
       }
     }
