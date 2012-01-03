@@ -47,12 +47,48 @@
     <version.surefire.plugin>2.6</version.surefire.plugin>
     <version.versions.plugin>1.2</version.versions.plugin>
     <version.war.plugin>2.1</version.war.plugin>
+    <version.assembly.plugin>2.2.1</version.assembly.plugin>
   </properties>
   <dependencyManagement>
     <dependencies>
       <!-- ALL VERSIONS OF DEPENDENCIES HAVE TO BE DEFINED HERE -->
     </dependencies>
   </dependencyManagement>
+  <profiles>
+   <profile>
+      <id>release</id>
+      <build>
+        <plugins>          
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <dependencies>
+              <dependency>
+                <groupId>org.apache.apache.resources</groupId>
+                <artifactId>apache-source-release-assembly-descriptor</artifactId>
+                <version>1.0.2</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>source-release-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot>
+                  <descriptorRefs>
+                    <descriptorRef>source-release</descriptorRef>
+                  </descriptorRefs>
+                  <tarLongFileFormat>gnu</tarLongFileFormat>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
   <modules>
     <module>integ-gatein</module>
     <module>integ-ecms</module>
