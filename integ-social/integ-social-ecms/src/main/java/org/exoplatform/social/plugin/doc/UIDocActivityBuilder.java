@@ -22,10 +22,10 @@ import java.util.Map;
 import javax.jcr.Node;
 
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.services.jcr.util.Text;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.wcm.core.NodeLocation;
-import org.exoplatform.social.core.activity.model.Activity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.storage.ActivityStorageException;
@@ -73,10 +73,26 @@ public class UIDocActivityBuilder extends BaseUIActivityBuilder {
       }
 
     }
-
+    //escape node name for special characters
+    docActivity.docPath = escapeIllegalJcrCharsOnNodeName(docActivity.docPath);
     NodeLocation nodeLocation = new NodeLocation(repository, workspace, docActivity.docPath);
     final Node docNode = NodeLocation.getNodeByLocation(nodeLocation);
     docActivity.setDocNode(docNode);
+  }
+
+  /**
+   * Escapes special characters of node name in a path.
+   *
+   * @param path the path
+   * @return the escaped node name
+   */
+  private String escapeIllegalJcrCharsOnNodeName(String path) {
+    int lastIndex = path.lastIndexOf("/");
+    if (lastIndex != -1) {
+      String nodeName = path.substring(lastIndex + 1);
+      path = path.replaceAll(nodeName + "$", Text.escapeIllegalJcrChars(nodeName));
+    }
+    return path;
   }
 
   private void saveToNewDataFormat(ExoSocialActivity activity, UIDocActivity docActivity, String repository , String workspace) {
