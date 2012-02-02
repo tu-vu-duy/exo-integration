@@ -23,6 +23,8 @@ import org.exoplatform.container.PortalContainer;
 import org.exoplatform.ks.common.user.CommonContact;
 import org.exoplatform.ks.common.user.ContactProvider;
 import org.exoplatform.ks.common.user.DefaultContactProvider;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
@@ -37,6 +39,9 @@ import org.exoplatform.social.core.service.LinkProvider;
  * Sep 28, 2011  
  */
 public class SocialContactProvider implements ContactProvider {
+  
+  private static Log log = ExoLogger.getLogger(SocialContactProvider.class);
+  
   @SuppressWarnings("unchecked")
   @Override
   public CommonContact getCommonContact(String userId) {
@@ -103,6 +108,7 @@ public class SocialContactProvider implements ContactProvider {
         contact.setWebSite(LinkProvider.getProfileUri(userId));
       }
     } catch (Exception e) {
+      log.warn("Could not retrieve forum user profile for " + userId + " by SocialContactProvider, DefaultContactProvider will be used.\nCaused by:", e);
       OrganizationService orgService = (OrganizationService) PortalContainer.getInstance().getComponentInstanceOfType(OrganizationService.class);
       DefaultContactProvider provider = new DefaultContactProvider(orgService);
       contact = provider.getCommonContact(userId);
