@@ -345,8 +345,7 @@ public class Utils {
            .append("/")
            .append(workspaceName)
            .append("/")
-           .append(nodeIdentifiler)
-           .append("/?reloadnum=" + Math.random());
+           .append(nodeIdentifiler);
     return builder.toString();
   }
 
