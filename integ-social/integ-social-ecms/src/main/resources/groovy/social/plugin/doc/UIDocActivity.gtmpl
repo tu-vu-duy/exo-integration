@@ -156,7 +156,7 @@
   <div class="NormalBox ClearFix">
     <a class="Avatar" title="$ownerName" href="$ownerUri">
       <img title="$ownerName" src="$ownerAvatar" alt="$ownerName">
-		  <span class="BorderTop"></span>
+          <span class="BorderTop"></span>
       <span class="BorderBottom"></span>
     </a>
     <div class="ContentBox" id="ContextBox${activity.id}">
@@ -170,7 +170,7 @@
       <%}%>
       </h5>
     
-		 <%
+         <%
           if (!dMessage.equals(null) && !dMessage.equals("")){
             %>
               <div class="TitleBlock">$dMessage</div>
@@ -178,26 +178,28 @@
           }
         %>
         
-	    <div class="BoxGray">
-	    <% 
-		    if(uicomponent.isImageFile(dName)) {
-		  %>      
-		    <img src="$uicomponent.docLink" style="width: 80px;" />
-		  <%
-		    } else {
-		  %>
+        <div class="BoxGray">
+          <% 
+            if(uicomponent.isPreviewable()) {
+          %>
+              <a href="<%= uicomponent.event("ViewDocument")%>" title="$dName">      
+                <img src="<%= uicomponent.docThumbnail %>" style="max-height: 300px; max-width: 300px;" />
+              </a>          
+          <%
+            } else {
+          %>
         $dName
       <%
-		    }
-		  %>
+            }
+          %>
       </div>
       <div class="DocActivityIcon">
         <% if (uicomponent.isUserActivity() && uicomponent.isSpaceStreamOwner() && !uicomponent.isUISpaceActivitiesDisplay()) {%>
-        	<%
-          	Space spaceSource = Utils.getSpaceService().getSpaceByPrettyName(streamOwner);
-    				def spaceSourceURI = LinkProvider.getSpaceUri(spaceSource.url);
-    				def spaceName = spaceSource.displayName;
-    				activityPostedTimeInSpace = uicomponent.getPostedTimeInSpaceString(_ctx, activity.postedTime);
+            <%
+              Space spaceSource = Utils.getSpaceService().getSpaceByPrettyName(streamOwner);
+                    def spaceSourceURI = LinkProvider.getSpaceUri(spaceSource.url);
+                    def spaceName = spaceSource.displayName;
+                    activityPostedTimeInSpace = uicomponent.getPostedTimeInSpaceString(_ctx, activity.postedTime);
           %>
           <span class="DateTime">$activityPostedTimeInSpace <b><a class="Text" title="$spaceName" href="$spaceSourceURI">$spaceName</a></b> *</span>
         <%} else {%>
@@ -220,8 +222,8 @@
         </a> |
       <% }%>
      <% }%>
-        <a class="ColorLink" href="<%= uicomponent.event("DownloadDocument", uicomponent.getId(), "")%>">$downloadFileLabel</a> |
-        <a class="ColorLink" href="<%= uicomponent.event("ViewDocument", uicomponent.getId(), "")%>">$viewFileLabel</a>
+        <a class="ColorLink" href="<%= uicomponent.event("DownloadDocument")%>">$downloadFileLabel</a> |
+        <a class="ColorLink" href="<%= uicomponent.event("ViewDocument")%>">$viewFileLabel</a>
       </div>
       </div>
       
@@ -229,7 +231,7 @@
       <div class="ListPeopleLikeBG $listPeopleBGClass">
           <div class="ListPeopleContent">
           <% if (!labelLikes) labelLikes = ""; %>
-			      $labelLikes
+                  $labelLikes
 
             <% if (identityLikesNum > 0) {%>
             <div class="$listPeopleLikeBlockClass">
@@ -335,9 +337,9 @@
     <% } %>
       <a class="AvatarCM" title="$currentCommenterName" href="$currentCommenterUri">
         <img src="$currentCommenterAvatar">
-		    <span class="BorderTopCM"></span>
+            <span class="BorderTopCM"></span>
         <span class="BorderBottomCM"></span>
-		  </a>
+      </a>
       <div class="CommentInputBox"><% uicomponent.renderChild(UIFormTextAreaInput.class); %></div>
       <input type="button" onclick="<%= uicomponent.event("PostComment") %>" value="$labelComment" class="CommentButton DisplayNone" id="CommentButton${activity.id}" />
     </div>

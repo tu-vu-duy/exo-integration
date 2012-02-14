@@ -16,12 +16,9 @@
  */
 package org.exoplatform.social.plugin.doc;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.jcr.Node;
 
-import org.apache.commons.lang.StringUtils;
+import org.exoplatform.container.PortalContainer;
 import org.exoplatform.social.webui.activity.BaseUIActivity;
 import org.exoplatform.social.webui.activity.UIActivitiesContainer;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
@@ -57,7 +54,8 @@ import org.exoplatform.webui.event.EventListener;
  )
 public class UIDocActivity extends BaseUIActivity {
   
-  private static final String IMAGE_PATTERN = "([^\\s]+(\\.(?i)(jpeg|jpg|png|gif|bmp))$)";
+  private static final String IMAGE_PREFIX = "image/";
+  private static final String DOCUMENT_POSTFIX = "/pdf";
   
   public static final String ACTIVITY_TYPE = "DOC_ACTIVITY";
   public static final String DOCLINK = "DOCLINK";
@@ -84,10 +82,27 @@ public class UIDocActivity extends BaseUIActivity {
     return docNode;
   }
 
-  protected boolean isImageFile(final String fileName) {
-    Pattern pattern = Pattern.compile(IMAGE_PATTERN);
-    Matcher matcher = pattern.matcher(StringUtils.deleteWhitespace(fileName));
-    return matcher.matches();
+
+  protected boolean isPreviewable() {
+    String mimeType = "";
+    try {
+      mimeType = docNode.getNode("jcr:content").getProperty("jcr:mimeType").getString();
+    } catch (Exception e) {
+      return false;
+    }
+    return mimeType.endsWith(DOCUMENT_POSTFIX) || mimeType.startsWith(IMAGE_PREFIX);
+  }
+  
+  
+  protected String getDocThumbnail(){    
+    String portalContainerName = PortalContainer.getCurrentPortalContainerName();
+    String restContextName = PortalContainer.getRestContextName(portalContainerName);
+    return new StringBuffer().append("/").append(portalContainerName).
+                               append("/").append(restContextName).
+                               append("/thumbnailImage/big").
+                               append("/").append(UIDocActivityComposer.REPOSITORY).
+                               append("/").append(UIDocActivityComposer.WORKSPACE).
+                               append(docPath).toString();
   }
   
   public static class ViewDocumentActionListener extends EventListener<UIDocActivity> {

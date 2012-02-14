@@ -28,11 +28,11 @@
       %>
       <span class="TopInputLink"></span>
       <div class="InputDoc">
-      	<span class="BrowsedDocument"><%=uicomponent.getDocumentName()%></span>
-      	<a class="CloseIconLink" href="<%= uicomponent.event("RemoveDocument")%>">&nbsp;</a><br/>
+        <span class="BrowsedDocument"><%=uicomponent.getDocumentName()%></span>
+        <a class="CloseIconLink" href="<%= uicomponent.event("RemoveDocument")%>">&nbsp;</a><br/>
       </div>
       
-      	<script type="text/javascript">
+        <script type="text/javascript">
           try{setShareButtonDisable(false);}catch(e){}
         </script>
       <%
@@ -40,7 +40,7 @@
       %>
         <span class="TopInputLink"></span>
         <div class="InputDoc">
-        	<a class="BrowseFile" href="<%= uicomponent.event("SelectDocument")%>">$selectFileLabel</a>
+          <a class="BrowseFile" href="<%= uicomponent.event("SelectDocument")%>">$selectFileLabel</a>
         </div>
         <script type="text/javascript">
           try{setShareButtonDisable(true);}catch(e){}

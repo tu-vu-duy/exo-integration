@@ -22,7 +22,7 @@ import java.util.Map;
 import javax.jcr.Node;
 
 import org.exoplatform.container.PortalContainer;
-import org.exoplatform.services.jcr.util.Text;
+import org.exoplatform.ecm.utils.text.Text;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.wcm.core.NodeLocation;
@@ -90,7 +90,8 @@ public class UIDocActivityBuilder extends BaseUIActivityBuilder {
     int lastIndex = path.lastIndexOf("/");
     if (lastIndex != -1) {
       String nodeName = path.substring(lastIndex + 1);
-      path = path.replaceAll(nodeName + "$", Text.escapeIllegalJcrChars(nodeName));
+      path  = new StringBuffer(path).delete(path.length() - nodeName.length(), path.length()).
+                      append(Text.escapeIllegalJcrChars(nodeName)).toString();
     }
     return path;
   }
