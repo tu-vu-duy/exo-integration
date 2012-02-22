@@ -20,7 +20,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.exoplatform.container.PortalContainer;
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.forum.service.Category;
 import org.exoplatform.forum.service.Forum;
@@ -73,11 +74,12 @@ public class ForumDataInitialize extends SpaceListenerPlugin {
        */
       return;
     }
-    ForumService fServie = (ForumService) PortalContainer.getInstance().getComponentInstanceOfType(ForumService.class);
+    ExoContainer exoContainer = ExoContainerContext.getCurrentContainer();
+    ForumService fServie = (ForumService) exoContainer.getComponentInstanceOfType(ForumService.class);
     Space space = event.getSpace();
     String parentGrId = "";
     try {
-      OrganizationService service = (OrganizationService) PortalContainer.getInstance().getComponentInstanceOfType(OrganizationService.class);
+      OrganizationService service = (OrganizationService) exoContainer.getComponentInstanceOfType(OrganizationService.class);
       parentGrId = service.getGroupHandler().findGroupById(space.getGroupId()).getParentId();
 
       String categorySpId = Utils.CATEGORY + parentGrId.replaceAll(CommonUtils.SLASH, CommonUtils.EMPTY_STR);
@@ -85,37 +87,36 @@ public class ForumDataInitialize extends SpaceListenerPlugin {
       if (category == null) {
         category = new Category(categorySpId);
         category.setCategoryName(SpaceUtils.SPACE_GROUP.replace(CommonUtils.SLASH, CommonUtils.EMPTY_STR));
-        if (!CommonUtils.isEmpty(space.getCreator())) {
-          category.setOwner(space.getCreator());
-        } else {
-          category.setOwner("");
-        }
+        category.setOwner(space.getManagers()[0]);
         category.setCategoryOrder(100l);
         category.setUserPrivate(new String[]{""});
         category.setDescription("All forums from spaces");
         fServie.saveCategory(category, true);
       }
-
-      Forum forum = new Forum();
-      forum.setOwner(space.getCreator());
-      forum.setId(Utils.FORUM_SPACE_ID_PREFIX + space.getPrettyName());
-      forum.setForumName(space.getDisplayName());
-      forum.setDescription(space.getDescription());
-      // TODO hard text manager should check with portal team
-      forum.setModerators(new String[] { SpaceServiceImpl.MANAGER + ":" + space.getGroupId() });
-      String []roles = new String [] {space.getGroupId()};
-      forum.setCreateTopicRole(roles);
-      forum.setPoster(roles);
-      forum.setViewer(roles);
-      if (fServie.getForum(categorySpId, forum.getId()) == null){
-        fServie.saveForum(categorySpId, forum, true);
+      String forumId = Utils.FORUM_SPACE_ID_PREFIX + space.getPrettyName();
+      if (fServie.getForum(categorySpId, forumId) == null) {
         Set<String> prs = new HashSet<String>(Arrays.asList(category.getUserPrivate()));
         prs.add(space.getGroupId());
         category.setUserPrivate(prs.toArray(new String[prs.size()]));
         fServie.saveCategory(category, false);
+        String[] roles = new String[] { space.getGroupId() };
+        String[] moderators = new String[] { new StringBuilder(SpaceServiceImpl.MANAGER).append(CommonUtils.COLON)
+                                              .append(space.getGroupId()).toString() };
+        Forum forum = new Forum();
+        forum.setOwner(space.getManagers()[0]);
+        forum.setId(forumId);
+        forum.setForumName(space.getDisplayName());
+        forum.setDescription(space.getDescription());
+        forum.setModerators(moderators);
+        forum.setCreateTopicRole(roles);
+        forum.setPoster(roles);
+        forum.setViewer(roles);
+        fServie.saveForum(categorySpId, forum, true);
       }
     } catch (Exception e) {
-      log.debug("Failed to add forum space. " + e.getMessage());
+      if(log.isDebugEnabled()) {
+        log.debug("Failed to add forum space. " + e.getMessage());
+      }
     }
   }
 
