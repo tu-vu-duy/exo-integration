@@ -17,13 +17,14 @@
 
 package org.exoplatform.social.plugin.doc;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.ecm.webui.selector.UISelectable;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.social.core.BaseActivityProcessorPlugin;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -45,7 +46,6 @@ import org.exoplatform.web.application.ApplicationMessage;
 import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.EventConfig;
-import org.exoplatform.webui.core.UIApplication;
 import org.exoplatform.webui.core.UIComponent;
 import org.exoplatform.webui.core.UIContainer;
 import org.exoplatform.webui.core.UIPopupWindow;
@@ -181,13 +181,14 @@ public class UIDocActivityComposer extends UIActivityComposer implements UISelec
                                                                            null,
                                                                            ApplicationMessage.INFO));
     } else {
-      Map<String, String> activityParams = new HashMap<String, String>();
+      Map<String, String> activityParams = new LinkedHashMap<String, String>();
       activityParams.put(UIDocActivity.DOCNAME, documentName);
       activityParams.put(UIDocActivity.DOCLINK, documentRefLink);
       activityParams.put(UIDocActivity.DOCPATH, documentPath);
       activityParams.put(UIDocActivity.REPOSITORY, REPOSITORY);
       activityParams.put(UIDocActivity.WORKSPACE, WORKSPACE);
       activityParams.put(UIDocActivity.MESSAGE, postedMessage);
+      activityParams.put(BaseActivityProcessorPlugin.TEMPLATE_PARAM_TO_PROCESS, UIDocActivity.MESSAGE);
 
       if(postContext == UIComposer.PostContext.SPACE){
         postActivityToSpace(source, requestContext, activityParams);
